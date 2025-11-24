@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Users } from "lucide-react"
+import Image from "next/image"
 
 export function Navbar() {
     return (
@@ -10,8 +11,8 @@ export function Navbar() {
             <div className="container mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                    <Users className="h-8 w-8 text-black" />
-                    <span className="text-xl font-bold text-black">Hostinflu</span>
+                    <Image src="/mini.png" alt="Logo" width={30} height={30} />
+                    <span className="text-2xl font-bold text-black">Hostinflu</span>
                 </Link>
 
                 {/* Desktop Navigation */}
@@ -41,7 +42,7 @@ export function Navbar() {
                     <Link href="/signin">
                         <Button
                             variant="outline"
-                            className="bg-white text-black border-black hover:bg-gray-100 font-semibold px-6"
+                            className="bg-white text-black hover:bg-black hover:text-white border-black font-semibold px-5"
                         >
                             Log In/ Sign Up
                         </Button>

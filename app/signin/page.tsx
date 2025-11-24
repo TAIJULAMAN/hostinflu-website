@@ -24,7 +24,7 @@ export default function SignInPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-8">
-            <span className="font-bold text-2xl text-foreground">≠ Hostinflu</span>
+            <span className="font-bold text-2xl text-foreground">Hostinflu</span>
           </Link>
           <h1 className="text-4xl font-bold text-foreground mb-2">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
@@ -104,16 +104,6 @@ export default function SignInPage() {
             <span className="text-sm text-muted-foreground">or</span>
             <div className="flex-1 h-px bg-border"></div>
           </div>
-
-          {/* Google Sign In */}
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full border-2 border-border bg-white hover:bg-gray-50"
-          >
-            Continue with Google
-          </Button>
         </Card>
 
         {/* Sign Up Link */}

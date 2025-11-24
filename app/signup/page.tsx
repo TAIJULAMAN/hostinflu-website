@@ -7,6 +7,13 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -16,11 +23,16 @@ export default function SignUpPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleRoleChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, role: value }))
   }
 
   const handleSignUp = (e: React.FormEvent) => {
@@ -29,19 +41,15 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-8">
-            <span className="font-bold text-2xl text-foreground">≠ Hostinflu</span>
-          </Link>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Create Account</h1>
-          <p className="text-muted-foreground">Join Hostinflu and start collaborating</p>
-        </div>
-
+    <main className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center px-5 py-10">
+      <div className="w-full max-w-xl">
         {/* Sign Up Card */}
-        <Card className="p-8 border-2 border-border bg-white shadow-lg">
+        <Card className="p-5 border-2 border-border bg-white shadow-lg">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-xl font-bold text-foreground mb-2">Create Account</h1>
+            <p className="text-muted-foreground">Join Hostinflu and start collaborating</p>
+          </div>
           <form onSubmit={handleSignUp} className="space-y-5">
             {/* Full Name Field */}
             <div className="space-y-2">
@@ -137,6 +145,20 @@ export default function SignUpPage() {
               </div>
             </div>
 
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground">I am a</label>
+              <Select onValueChange={handleRoleChange} required>
+                <SelectTrigger className="w-full py-3 h-12 border-border">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="host">Host</SelectItem>
+                  <SelectItem value="influencer">Influencer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Terms Agreement */}
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" className="w-4 h-4 rounded border-border mt-1" />
@@ -160,23 +182,6 @@ export default function SignUpPage() {
               Create Account
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-sm text-muted-foreground">or</span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-
-          {/* Google Sign Up */}
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full border-2 border-border bg-white hover:bg-gray-50"
-          >
-            Sign up with Google
-          </Button>
         </Card>
 
         {/* Sign In Link */}
