@@ -1,9 +1,9 @@
-// components/dashboard/main-header.tsx
 "use client";
 
-import { Menu, Bell, Search } from "lucide-react";
+import { Menu, Bell, Search, MessageSquareMore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 
 export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   return (
@@ -26,14 +26,29 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
           className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
         />
       </div>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="overflow-hidden rounded-full"
-      >
-        <Bell className="h-4 w-4" />
-      </Button>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full border border-teal-600 w-10 h-10"
+        >
+          <MessageSquareMore className="h-10 w-10 text-teal-600" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full border border-teal-600 w-10 h-10"
+        >
+          <Bell className="h-10 w-10 text-teal-600" />
+        </Button>
+        <Avatar className="rounded-full border border-teal-600 w-10 h-10">
+          <AvatarImage
+            src="https://avatar.iran.liara.run/public/14"
+            alt="avatar of user"
+          />
+          <AvatarFallback>AD</AvatarFallback>
+        </Avatar>
+      </div>
     </header>
   );
 }
