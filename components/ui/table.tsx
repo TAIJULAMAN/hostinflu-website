@@ -19,11 +19,24 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
   )
 }
 
+// function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
+//   return (
+//     <thead
+//       data-slot="table-header"
+//       className={cn('[&_tr]:border-b', className)}
+//       {...props}
+//     />
+//   )
+// }
+
 function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return (
     <thead
       data-slot="table-header"
-      className={cn('[&_tr]:border-b', className)}
+      className={cn(
+        'bg-[#10B981CC] [&_tr]:border-0', // Removed border from header rows
+        className
+      )}
       {...props}
     />
   )
@@ -57,7 +70,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
     <tr
       data-slot="table-row"
       className={cn(
-        'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+        'border-b border-gray-200 hover:bg-gray-50 transition-colors', // Added subtle hover and border
         className,
       )}
       {...props}
