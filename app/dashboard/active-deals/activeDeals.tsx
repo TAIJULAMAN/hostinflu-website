@@ -18,6 +18,9 @@ import {
   PaginationEllipsis,
   PaginationItem,
 } from "@/components/ui/pagination";
+import { useState } from "react";
+// import { Trash2, Eye, Pencil } from "lucide-react"
+import { DeleteModal } from "@/components/ui/delete-modal";
 
 interface Deal {
   id: string;
@@ -448,6 +451,42 @@ export default function ActiveDeals() {
     }
   };
 
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    dealId: string | null;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    dealId: null,
+    isLoading: false,
+  });
+
+  const handleDeleteClick = (dealId: string) => {
+    setDeleteModal({
+      isOpen: true,
+      dealId,
+      isLoading: false,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.dealId) return;
+
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Close the modal
+      setDeleteModal({
+        isOpen: false,
+        dealId: null,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Failed to delete deal", error);
+      setDeleteModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex flex-col space-y-4 mb-6">
@@ -553,8 +592,10 @@ export default function ActiveDeals() {
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
-                    className="p-1.5 text-red-600 rounded-full"
+                    onClick={() => handleDeleteClick(deal.id)}
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                     title="Delete"
+                    disabled={deleteModal.isLoading}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -624,6 +665,14 @@ export default function ActiveDeals() {
           </Pagination>
         </div>
       )}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Deal"
+        description="Are you sure you want to delete this deal? This action cannot be undone."
+        isLoading={deleteModal.isLoading}
+      />
     </div>
   );
 }

@@ -1,31 +1,22 @@
 "use client";
 
 import {
-  ArrowLeft,
   Calendar,
-  Clock,
   MapPin,
   DollarSign,
   CheckCircle2,
   ExternalLink,
-  Copy,
-  ChevronRight,
   Camera,
   Music,
   Hash,
   Youtube,
 } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeading } from "@/components/commom/pageHeading";
 
 export default function DealDetailsPage() {
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://bit.ly/host-deal-001");
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
