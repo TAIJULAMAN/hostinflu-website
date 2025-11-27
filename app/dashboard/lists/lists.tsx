@@ -181,7 +181,8 @@ export default function Lists() {
             <Table>
                 <TableHeader>
                     <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-                        <TableHead className="rounded-tl-lg">PROPERTY NAME</TableHead>
+                        <TableHead className="rounded-tl-lg">IMAGE</TableHead>
+                        <TableHead>PROPERTY NAME</TableHead>
                         <TableHead>DATE ADDED</TableHead>
                         <TableHead>PROPERTY TYPE</TableHead>
                         <TableHead>STATUS</TableHead>
@@ -192,6 +193,13 @@ export default function Lists() {
                 <TableBody>
                     {currentLists.map((item) => (
                         <TableRow key={item.id} className="hover:bg-gray-50">
+                            <TableCell>
+                                <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-12 h-12 rounded-md object-cover"
+                                />
+                            </TableCell>
                             <TableCell className="font-medium text-gray-900">
                                 {item.name}
                             </TableCell>
