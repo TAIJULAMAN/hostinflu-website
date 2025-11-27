@@ -74,7 +74,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
           >
             <Settings className="h-5 w-5" />
-            Settings
+            Collaborations
           </Link>
           <Link
             href="#"

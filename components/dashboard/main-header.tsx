@@ -1,9 +1,11 @@
 "use client";
 
+import React from "react";
 import { Menu, Bell, Search, MessageSquareMore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   return (
@@ -34,13 +36,15 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
         >
           <MessageSquareMore className="h-10 w-10 text-teal-600" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full border border-teal-600 w-10 h-10"
-        >
-          <Bell className="h-10 w-10 text-teal-600" />
-        </Button>
+        <Link href="/dashboard/notifications">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full border border-teal-600 w-10 h-10"
+          >
+            <Bell className="h-10 w-10 text-teal-600" />
+          </Button>
+        </Link>
         <Avatar className="rounded-full border border-teal-600 w-10 h-10">
           <AvatarImage
             src="https://avatar.iran.liara.run/public/14"
