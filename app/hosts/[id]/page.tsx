@@ -15,7 +15,6 @@ import {
     CheckCircle2,
 } from "lucide-react";
 
-// Mock data - in a real app this would come from an API based on the ID
 const hostData = {
     id: 1,
     name: "Michael Adams",

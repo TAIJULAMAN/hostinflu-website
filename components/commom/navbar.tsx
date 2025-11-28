@@ -18,16 +18,22 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           <Link
-            href="#"
+            href="/"
             className="text-sm font-medium text-black/80 hover:text-black transition-colors"
           >
             Home
           </Link>
           <Link
-            href="#"
+            href="/hosts"
             className="text-sm font-medium text-black/80 hover:text-black transition-colors"
           >
-            How it work
+            Hosts
+          </Link>
+          <Link
+            href="/influencers"
+            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
+          >
+            Influencers
           </Link>
           <Link
             href="#"
@@ -48,7 +54,7 @@ export function Navbar() {
           <Link href="/signin">
             <Button
               variant="outline"
-              className="bg-white text-black hover:bg-black hover:text-white border-black font-semibold px-5"
+              className="bg-white text-black  border-black font-semibold px-5"
             >
               Log In/ Sign Up
             </Button>

@@ -96,7 +96,7 @@ export default function TopInfluencer() {
                             <div className="p-5 flex flex-col flex-grow">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#fc826f] transition-colors">
                                             {influencer.name}
                                         </h3>
                                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -112,12 +112,12 @@ export default function TopInfluencer() {
 
                                 <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500 mb-5">
                                     <span>{influencer.collaborations} collaborations</span>
-                                    <span className="text-purple-600 font-medium text-xs bg-purple-50 px-2 py-1 rounded-full">Verified</span>
+                                    <span className="text-[#fc826f] font-medium text-xs bg-[#fc826f]/10 px-2 py-1 rounded-full">Verified</span>
                                 </div>
 
                                 {/* Action Button */}
                                 <Link href={`/influencers/${influencer.id}`} className="mt-auto w-full">
-                                    <Button className="w-full bg-white border-2 border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white font-semibold rounded-xl h-11 transition-all duration-300">
+                                    <Button className="w-full bg-white border-2 border-[#fc826f] text-[#fc826f] hover:bg-[#fc826f] hover:text-white font-semibold rounded-xl h-11 transition-all duration-300">
                                         View Profile
                                     </Button>
                                 </Link>
