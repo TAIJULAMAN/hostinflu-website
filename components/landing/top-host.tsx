@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Building2, Home, Hotel, Tent } from "lucide-react";
@@ -9,7 +10,7 @@ const hosts = [
         name: "Adam Lewis",
         location: "Kuala Lumpur • Malaysia",
         role: "Founder Member",
-        image: "/hero1.png", // Placeholder
+        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80",
         rating: "4.9",
         deals: "28 deals",
         propertyType: "Luxury Apartment",
@@ -19,19 +20,19 @@ const hosts = [
         id: 2,
         name: "Maria Sanchez",
         location: "Barcelona • Spain",
-        role: "Founder Member", // Assuming based on design consistency or lack thereof, image shows no badge for others but let's stick to data structure
-        image: "/hero1.png",
+        role: "Founder Member",
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
         rating: "4.8",
         deals: "21 deals",
         propertyType: "Beach Resort",
-        propertyIcon: <Tent className="w-3 h-3" />, // Using Tent as proxy for resort/holiday
+        propertyIcon: <Tent className="w-3 h-3" />,
     },
     {
         id: 3,
         name: "Hasan Rahman",
         location: "Dubai • UAE",
         role: "Founder Member",
-        image: "/hero1.png",
+        image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80",
         rating: "4.7",
         deals: "19 deals",
         propertyType: "Boutique Villa",
@@ -42,7 +43,7 @@ const hosts = [
         name: "Emily Carter",
         location: "London • UK",
         role: "Founder Member",
-        image: "/hero1.png",
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
         rating: "4.9",
         deals: "32 deals",
         propertyType: "Urban Studio",
@@ -52,14 +53,14 @@ const hosts = [
 
 export default function TopHost() {
     return (
-        <section className="py-20 bg-white">
+        <section className="py-24 bg-white">
             <div className="container mx-auto px-4">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                        Discover Our Highest-Rated Hosts
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        Discover Our Hosts
                     </h2>
-                    <p className="text-gray-500">
-                        Meet our most trusted and experienced property hosts
+                    <p className="text-gray-500 max-w-2xl mx-auto">
+                        Meet our most trusted and experienced property hosts who are ready to collaborate.
                     </p>
                 </div>
 
@@ -67,54 +68,64 @@ export default function TopHost() {
                     {hosts.map((host) => (
                         <div
                             key={host.id}
-                            className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center"
+                            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden"
                         >
-                            {/* Host Image */}
-                            <div className="relative w-full aspect-[4/3] mb-4 rounded-xl overflow-hidden">
+                            {/* Host Image - Full Width */}
+                            <div className="relative w-full aspect-[4/3] overflow-hidden">
                                 <Image
                                     src={host.image}
                                     alt={host.name}
                                     fill
-                                    className="object-cover"
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                            </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
 
-                            {/* Name & Location */}
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                {host.name}
-                            </h3>
-                            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                                <MapPin className="w-3 h-3" />
-                                <span>{host.location}</span>
-                            </div>
+                                {host.id === 1 && (
+                                    <div className="absolute top-3 right-3">
+                                        <Badge className="bg-white/90 backdrop-blur-md text-orange-600 border-none shadow-sm font-medium text-xs px-2.5 py-1">
+                                            <span className="mr-1">👑</span> {host.role}
+                                        </Badge>
+                                    </div>
+                                )}
 
-                            {/* Badge (Conditional based on design, showing for first one mainly but let's make it data driven) */}
-                            {host.id === 1 && (
-                                <Badge className="bg-orange-50 text-orange-600 hover:bg-orange-50 border-none mb-3 font-normal text-xs px-3 py-1">
-                                    <span className="mr-1">👑</span> {host.role}
-                                </Badge>
-                            )}
-
-                            {/* Rating */}
-                            <div className="flex items-center gap-2 text-sm mb-3">
-                                <div className="flex items-center gap-1 font-semibold text-gray-900">
-                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                    {host.rating}
+                                <div className="absolute bottom-3 left-3 text-white">
+                                    <div className="flex items-center gap-1 text-xs font-medium bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                                        {host.propertyIcon}
+                                        {host.propertyType}
+                                    </div>
                                 </div>
-                                <span className="text-gray-300">•</span>
-                                <span className="text-gray-500">{host.deals}</span>
                             </div>
 
-                            {/* Property Type */}
-                            <div className="bg-gray-100 rounded-lg px-3 py-2 flex items-center gap-2 text-xs text-gray-600 mb-6 w-full justify-center">
-                                {host.propertyIcon}
-                                {host.propertyType}
-                            </div>
+                            {/* Content */}
+                            <div className="p-5 flex flex-col flex-grow">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-teal-600 transition-colors">
+                                            {host.name}
+                                        </h3>
+                                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                            <span>{host.location}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
+                                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                        <span className="text-xs font-bold text-gray-900">{host.rating}</span>
+                                    </div>
+                                </div>
 
-                            {/* Action Button */}
-                            <Button className="w-full bg-teal-400 hover:bg-teal-500 text-white font-medium rounded-lg h-10 mt-auto">
-                                View Host Profile
-                            </Button>
+                                <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500 mb-5">
+                                    <span>{host.deals}</span>
+                                    <span className="text-teal-600 font-medium text-xs bg-teal-50 px-2 py-1 rounded-full">Verified Host</span>
+                                </div>
+
+                                {/* Action Button */}
+                                <Link href={`/hosts/${host.id}`} className="mt-auto w-full">
+                                    <Button className="w-full bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white font-semibold rounded-xl h-11 transition-all duration-300">
+                                        View Profile
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
                     ))}
                 </div>
