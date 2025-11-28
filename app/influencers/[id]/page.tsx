@@ -3,7 +3,6 @@
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Star, CheckCircle2 } from "lucide-react";
@@ -136,7 +135,7 @@ export default function InfluencerProfilePage({ params }: { params: { id: string
                             </div>
 
                             <div className="mt-6 text-center">
-                                <Button variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                                <Button variant="outline">
                                     Load More Reviews
                                 </Button>
                             </div>
