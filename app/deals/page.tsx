@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/commom/navbar";
@@ -82,6 +86,15 @@ const deals = [
 ];
 
 export default function DealsPage() {
+    const router = useRouter();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [selectedDeal, setSelectedDeal] = useState<typeof deals[0] | null>(null);
+
+    const handleCollaboration = (deal: typeof deals[0]) => {
+        setSelectedDeal(deal);
+        setShowSuccessModal(true);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -125,11 +138,6 @@ export default function DealsPage() {
                                         {deal.propertyName}
                                     </h3>
 
-                                    {/* Credits & Posts */}
-                                    {/* <div className="flex items-center justify-between text-sm mb-4">
-                                        <span className="text-[#fc826f] font-bold">{deal.credits}</span>
-                                        <span className="text-gray-500">{deal.posts}</span>
-                                    </div> */}
 
                                     {/* Action Buttons */}
                                     <div className="flex gap-2">
@@ -141,6 +149,8 @@ export default function DealsPage() {
                                         </Link>
                                         <Button
                                             variant="outline"
+                                            className="w-full"
+                                            onClick={() => handleCollaboration(deal)}
                                         >
                                             Collaboration
                                         </Button>
@@ -161,6 +171,39 @@ export default function DealsPage() {
                     </div>
                 </div>
             </div>
+            {/* Success Modal */}
+            {showSuccessModal && selectedDeal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-300">
+                        {/* Success Icon */}
+                        <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        {/* Content */}
+                        <div className="text-center mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-3">Application Sent Successfully!</h2>
+                            <p className="text-gray-600 leading-relaxed">
+                                Your collaboration application has been sent to <span className="font-semibold text-gray-900">{selectedDeal.hostName}</span>. They will review your proposal and get back to you soon.
+                            </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="space-y-3">
+                            <Button
+                                onClick={() => router.push(`/deals/${selectedDeal.id}`)}
+                                variant="outline"
+                                className="w-full"
+                            >
+                                Back to Deal
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </div>
     );

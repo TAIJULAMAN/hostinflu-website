@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+
+import Link from "next/link";
 import {
     Calendar,
     MapPin,
@@ -16,6 +19,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function DealDetailsPage({ params }: { params: { id: string } }) {
+    const [isSending, setIsSending] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    const handleApply = () => {
+        setIsSending(true);
+        // Simulate API call
+        setTimeout(() => {
+            setIsSending(false);
+            setShowSuccessModal(true);
+        }, 1500);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -227,7 +242,7 @@ export default function DealDetailsPage({ params }: { params: { id: string } }) 
 
                                 <div className="space-y-2">
                                     <p className="text-sm text-gray-500">Total Amount</p>
-                                    <p className="text-3xl font-bold text-gray-900">$2,500.00</p>
+                                    <p className="text-3xl font-bold text-gray-900">$250</p>
                                 </div>
 
                                 <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
@@ -235,13 +250,22 @@ export default function DealDetailsPage({ params }: { params: { id: string } }) 
                                         <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
                                     </div>
                                     <p className="text-sm text-gray-600">
-                                        Payment will be released after all deliverables are approved.
+                                        Payment will be released after approved the deal.
                                     </p>
                                 </div>
 
-                                <div className="pt-2">
-                                    <Button className="w-full bg-[#fc826f] hover:bg-[#fc826f]/90 text-white py-3 rounded-lg font-semibold">
-                                        Apply for Collaboration
+                                <div className="pt-2 flex gap-3">
+                                    <Link href={`/deals/${params.id}/negotiate`} className="flex-1">
+                                        <Button variant="outline" className="w-full">
+                                            Negotiate
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        onClick={handleApply}
+                                        disabled={isSending}
+                                        className="flex-1 bg-[#fc826f] text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        {isSending ? "Sending..." : "Apply for Collaboration"}
                                     </Button>
                                 </div>
                             </div>
@@ -249,6 +273,33 @@ export default function DealDetailsPage({ params }: { params: { id: string } }) 
                     </div>
                 </div>
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 relative animate-in fade-in zoom-in duration-300 text-center">
+                        {/* Success Icon */}
+                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent Successfully!</h2>
+                        <p className="text-gray-600 mb-6">
+                            Your collaboration request has been sent to the Host.
+                        </p>
+
+                        <Button
+                            onClick={() => setShowSuccessModal(false)}
+                            className="w-full bg-white border border-gray-300 text-gray-900 font-semibold h-11 rounded-xl"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </div>
     );
