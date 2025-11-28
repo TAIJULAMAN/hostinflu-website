@@ -15,18 +15,18 @@ export function Footer() {
                         <h4 className="font-bold mb-4">Platform</h4>
                         <ul className="space-y-2 text-sm opacity-75">
                             <li>
-                                <Link href="#" className="hover:opacity-100">
-                                    Browse
+                                <Link href="/#how-it-works" className="hover:opacity-100">
+                                    How It Works
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:opacity-100">
+                                <Link href="/#pricing" className="hover:opacity-100">
                                     Pricing
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:opacity-100">
-                                    Security
+                                <Link href="/#features" className="hover:opacity-100">
+                                    Features
                                 </Link>
                             </li>
                         </ul>
@@ -35,13 +35,18 @@ export function Footer() {
                         <h4 className="font-bold mb-4">Company</h4>
                         <ul className="space-y-2 text-sm opacity-75">
                             <li>
-                                <Link href="#" className="hover:opacity-100">
+                                <Link href="/about-us" className="hover:opacity-100">
                                     About Us
                                 </Link>
                             </li>
                             <li>
                                 <Link href="#" className="hover:opacity-100">
                                     Careers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="#" className="hover:opacity-100">
+                                    FAQ
                                 </Link>
                             </li>
 
@@ -56,7 +61,7 @@ export function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:opacity-100">
+                                <Link href="/contact-us" className="hover:opacity-100">
                                     Contact Us
                                 </Link>
                             </li>

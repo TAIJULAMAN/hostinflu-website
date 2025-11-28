@@ -139,22 +139,7 @@ export default function ProfilePage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Account Type */}
-                            <Card className="border-gray-200 shadow-sm">
-                                <CardContent className="p-6">
-                                    <h3 className="font-semibold text-gray-900 mb-4">Account Type</h3>
 
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
-                                            <Home className="w-6 h-6 text-teal-600" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900 capitalize">{user?.role || "Host"}</p>
-                                            <p className="text-sm text-gray-500">Villa Owner</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
 
                             {/* Airbnb Connection (Only for Hosts) */}
                             {user?.role === "host" && (

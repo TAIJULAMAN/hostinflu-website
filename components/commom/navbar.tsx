@@ -39,8 +39,8 @@ export function Navbar() {
   return (
     <nav
       className={`w-full fixed top-0 z-50 px-4 sm:px-6 lg:px-8 py-4 transition-all duration-300 ${isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
+        ? "bg-white/80 backdrop-blur-md shadow-sm"
+        : "bg-transparent"
         }`}
     >
       <div className="container mx-auto flex items-center justify-between">
@@ -63,7 +63,6 @@ export function Navbar() {
           {isAuthenticated && user ? (
             <>
               {user.role === "host" ? (
-                // Host sees only Influencers
                 <Link
                   href="/influencers"
                   className="text-sm font-medium text-black/80 hover:text-black transition-colors"
@@ -71,7 +70,6 @@ export function Navbar() {
                   Influencers
                 </Link>
               ) : (
-                // Influencer sees Deals and Hosts
                 <>
                   <Link
                     href="/hosts"
@@ -89,7 +87,6 @@ export function Navbar() {
               )}
             </>
           ) : (
-            // Guest users see all links
             <>
               <Link
                 href="/hosts"
@@ -113,13 +110,13 @@ export function Navbar() {
           )}
 
           <Link
-            href="#"
+            href="/#pricing"
             className="text-sm font-medium text-black/80 hover:text-black transition-colors"
           >
             Pricing
           </Link>
           <Link
-            href="#"
+            href="/contact-us"
             className="text-sm font-medium text-black/80 hover:text-black transition-colors"
           >
             Help

@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   Users,
   Settings,
-  HelpCircle,
   X,
   LayoutDashboard,
   MessageCircle,
@@ -13,6 +12,7 @@ import {
   Handshake,
   Star,
   DollarSign,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   console.log(user);
 
   return (
@@ -61,7 +61,6 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           {user?.role === "host" ? (
-            // Host Navigation
             <>
               <Link
                 href="/dashboard"
@@ -121,7 +120,6 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               </Link>
             </>
           ) : (
-            // Influencer Navigation
             <>
               <Link
                 href="/dashboard"
@@ -171,7 +169,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center">
               <span className="font-semibold text-white">
                 {user?.fullName?.charAt(0).toUpperCase() || "U"}
@@ -182,6 +180,16 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               <p className="text-xs text-gray-500">{user?.email || "user@example.com"}</p>
             </div>
           </div>
+          <button
+            onClick={() => {
+              logout();
+              window.location.href = "/";
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
         </div>
       </div>
     </aside>

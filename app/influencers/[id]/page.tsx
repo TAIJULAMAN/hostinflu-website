@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Star, CheckCircle2 } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 
 const influencerData = {
     id: 1,
@@ -79,9 +80,11 @@ export default function InfluencerProfilePage({ params }: { params: { id: string
                                     </div>
                                 </div>
 
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 h-11 shadow-sm">
-                                    Send Collaboration Request
-                                </Button>
+                                <Link href={`/collaboration-request/${params.id}`}>
+                                    <Button className="bg-[#fc826f] hover:bg-[#fc826f]/90 text-white font-semibold rounded-lg px-6 h-11 shadow-sm">
+                                        Send Collaboration Request
+                                    </Button>
+                                </Link>
                             </div>
                         </CardContent>
                     </Card>
@@ -112,7 +115,6 @@ export default function InfluencerProfilePage({ params }: { params: { id: string
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="font-semibold text-gray-900">{review.name}</h3>
-
                                             </div>
 
                                             <div className="flex items-center gap-3 mb-2">

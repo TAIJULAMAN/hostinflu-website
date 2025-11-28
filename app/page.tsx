@@ -19,12 +19,18 @@ export default function Home() {
       <Navbar />
       <Hero />
       <SocialProof />
-      <HowItWorks />
+      <div id="how-it-works">
+        <HowItWorks />
+      </div>
       <TopHost />
       <TopInfluencer />
       <ValueProps />
-      <Features />
-      <Pricing />
+      <div id="features">
+        <Features />
+      </div>
+      <div id="pricing">
+        <Pricing />
+      </div>
       <Testimonials />
       <WhyChoose />
       <Footer />
