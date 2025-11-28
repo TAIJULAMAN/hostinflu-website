@@ -4,18 +4,29 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Mail, Lock, Eye, EyeOff } from "lucide-react"
 
 export default function SignInPage() {
+  const router = useRouter()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Sign in attempted with:", { email, password })
+
+    // Attempt login
+    const success = login(email, password)
+
+    if (success) {
+      // Redirect to home page
+      router.push("/")
+    }
   }
 
   return (

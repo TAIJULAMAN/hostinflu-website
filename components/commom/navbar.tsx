@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import Image from "next/image";
 
 export function Navbar() {
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
   return (
     <nav className="w-full fixed top-0 z-50 bg-transparent px-4 sm:px-6 lg:px-8 py-4">
       <div className="container mx-auto flex items-center justify-between">
@@ -49,16 +59,41 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Auth Button */}
-        <div className="flex items-center">
-          <Link href="/signin">
-            <Button
-              variant="outline"
-              className="bg-white text-black  border-black font-semibold px-5"
-            >
-              Log In/ Sign Up
-            </Button>
-          </Link>
+        {/* Auth Section */}
+        <div className="flex items-center gap-4">
+          {isAuthenticated && user ? (
+            <>
+              <Link href="/dashboard">
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-black hover:bg-black/5"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span className="font-medium">{user.fullName}</span>
+                  <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">
+                    {user.role}
+                  </span>
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="bg-white text-black border-black font-semibold px-5 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Link href="/signin">
+              <Button
+                variant="outline"
+                className="bg-white text-black border-black font-semibold px-5"
+              >
+                Log In/ Sign Up
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

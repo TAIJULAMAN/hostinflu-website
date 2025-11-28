@@ -4,6 +4,8 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react"
@@ -16,6 +18,8 @@ import {
 } from "@/components/ui/select"
 
 export default function SignUpPage() {
+  const router = useRouter()
+  const { signup } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -37,7 +41,31 @@ export default function SignUpPage() {
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Sign up attempted with:", formData)
+
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!")
+      return
+    }
+
+    // Validate role selection
+    if (!formData.role) {
+      alert("Please select your role!")
+      return
+    }
+
+    // Attempt signup
+    const success = signup(
+      formData.fullName,
+      formData.email,
+      formData.password,
+      formData.role as "host" | "influencer"
+    )
+
+    if (success) {
+      // Redirect to home page
+      router.push("/")
+    }
   }
 
   return (
