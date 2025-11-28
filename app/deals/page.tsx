@@ -143,7 +143,7 @@ export default function DealsPage() {
                                     <div className="flex gap-2">
 
                                         <Link href={`/deals/${deal.id}`} className="flex-1">
-                                            <Button className="w-full bg-white text-black border-2 border-black font-semibold rounded-md">
+                                            <Button className="w-full bg-white text-black border-1 border-black font-semibold rounded-md">
                                                 View Details
                                             </Button>
                                         </Link>
