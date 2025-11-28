@@ -161,6 +161,89 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Reviews Section */}
+                    <Card className="border-gray-200 shadow-sm">
+                        <CardContent className="p-6 md:p-8">
+                            <h2 className="text-lg font-bold text-gray-900 mb-6">Reviews</h2>
+
+                            <div className="space-y-6">
+                                {[
+                                    {
+                                        id: 1,
+                                        name: "Michael Chen",
+                                        avatar: "https://avatar.iran.liara.run/public/42",
+                                        rating: 5,
+                                        date: "2 weeks ago",
+                                        comment: "Sarah delivered all of expectations! Her content was stunning, delivered on time, and generated incredible engagement for our resort. Professional, creative, and a pleasure to work with. Highly recommend!",
+                                        verified: true,
+                                    },
+                                    {
+                                        id: 2,
+                                        name: "David Margrave",
+                                        avatar: "https://avatar.iran.liara.run/public/33",
+                                        rating: 5,
+                                        date: "1 month ago",
+                                        comment: "Working with Sarah was fantastic! Her professionalism and brand-dated services and created authentic content for our resort. The ROI was excellent!",
+                                        verified: true,
+                                    },
+                                    {
+                                        id: 3,
+                                        name: "James Wilson",
+                                        avatar: "https://avatar.iran.liara.run/public/28",
+                                        rating: 5,
+                                        date: "3 months ago",
+                                        comment: "EXCELLENT WORK! Sarah delivered on all of expectations! Her content was stunning, delivered on time, and generated incredible engagement for our resort. Professional, creative, and a pleasure to work with. Highly recommend!",
+                                        verified: true,
+                                    },
+                                    {
+                                        id: 4,
+                                        name: "Robert Taylor",
+                                        avatar: "https://avatar.iran.liara.run/public/19",
+                                        rating: 5,
+                                        date: "4 months ago",
+                                        comment: "Sarah was amazing to work with! Her content perfectly captured the essence of our resort and the ROI was excellent. She delivered on time and was very professional throughout the entire collaboration process. Will definitely work with her again!",
+                                        verified: true,
+                                    },
+                                ].map((review) => (
+                                    <div key={review.id} className="flex gap-4 pb-6 border-b border-gray-100 last:border-0">
+                                        <Avatar className="w-12 h-12 flex-shrink-0">
+                                            <AvatarImage src={review.avatar} className="object-cover" />
+                                            <AvatarFallback>{review.name[0]}</AvatarFallback>
+                                        </Avatar>
+
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-gray-900">{review.name}</h3>
+                                                {review.verified && (
+                                                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex items-center gap-1">
+                                                    {[...Array(review.rating)].map((_, i) => (
+                                                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs text-gray-500">{review.date}</span>
+                                            </div>
+
+                                            <p className="text-sm text-gray-600 leading-relaxed">
+                                                {review.comment}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-6 text-center">
+                                <button className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-colors">
+                                    Load More Reviews
+                                </button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
             <Footer />

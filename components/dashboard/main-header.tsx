@@ -49,20 +49,21 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
             <Bell className="h-10 w-10 text-teal-600" />
           </Button>
         </Link>
-        <div className="flex items-center gap-2">
-
-          <Avatar className="rounded-full border border-teal-600 w-10 h-10">
-            <AvatarImage
-              src="https://avatar.iran.liara.run/public/14"
-              alt="avatar of user"
-            />
-            <AvatarFallback>AD</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{user?.fullName}</p>
-            <p className="text-xs text-primary py-1 px-2 bg-primary/20 rounded-lg">{user?.role}</p>
+        <Link href="/profile">
+          <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+            <Avatar className="rounded-full border border-teal-600 w-10 h-10">
+              <AvatarImage
+                src="https://avatar.iran.liara.run/public/14"
+                alt="avatar of user"
+              />
+              <AvatarFallback>AD</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium">{user?.fullName}</p>
+              <p className="text-xs text-primary py-1 px-2 bg-primary/20 rounded-lg">{user?.role}</p>
+            </div>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );
