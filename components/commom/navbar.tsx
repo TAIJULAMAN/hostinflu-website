@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -19,6 +20,16 @@ import Image from "next/image";
 export function Navbar() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -26,7 +37,12 @@ export function Navbar() {
   };
 
   return (
-    <nav className="w-full fixed top-0 z-50 bg-transparent px-4 sm:px-6 lg:px-8 py-4">
+    <nav
+      className={`w-full fixed top-0 z-50 px-4 sm:px-6 lg:px-8 py-4 transition-all duration-300 ${isScrolled
+          ? "bg-white/80 backdrop-blur-md shadow-sm"
+          : "bg-transparent"
+        }`}
+    >
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
