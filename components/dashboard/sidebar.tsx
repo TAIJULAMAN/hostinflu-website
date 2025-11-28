@@ -5,6 +5,9 @@ import {
   HelpCircle,
   X,
   LayoutDashboard,
+  MessageCircle,
+  House,
+  BadgeDollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -70,7 +73,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             Listings
           </Link>
           <Link
-            href="#"
+            href="/dashboard/collaborations"
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
           >
             <Settings className="h-5 w-5" />
@@ -80,8 +83,22 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             href="#"
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
           >
-            <HelpCircle className="h-5 w-5" />
-            Help & Support
+            <House className="h-5 w-5" />
+            Reedem Request
+          </Link>
+          <Link
+            href="/dashboard/chat"
+            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Message
+          </Link>
+          <Link
+            href="#"
+            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+          >
+            <BadgeDollarSign className="h-5 w-5" />
+            Onboarding
           </Link>
         </nav>
 

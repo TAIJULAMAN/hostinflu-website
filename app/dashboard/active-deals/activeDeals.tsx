@@ -184,7 +184,7 @@ export default function ActiveDeals() {
       <Table>
         <TableHeader>
           <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-            <TableHead className="rounded-tl-lg">DEAL NAME</TableHead>
+            <TableHead className="rounded-tl-lg">LIST NAME</TableHead>
             <TableHead>INFLUENCER</TableHead>
             <TableHead>STATUS</TableHead>
             <TableHead>AMOUNT</TableHead>

@@ -32,7 +32,7 @@ export default function DealDetailsPage() {
         {/* Deal Title & Status */}
         <div className="space-y-3">
           <h2 className="text-2xl font-bold text-gray-900">
-            Weekend Stay Collaboration – Villa Serenity
+            Weekend Stay Deal – Villa Serenity
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">
@@ -44,7 +44,7 @@ export default function DealDetailsPage() {
         </div>
 
         {/* Collaborators */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        {/* <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -70,7 +70,7 @@ export default function DealDetailsPage() {
               </Avatar>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Campaign Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,11 +164,10 @@ export default function DealDetailsPage() {
 
                     {/* Status indicator */}
                     <div
-                      className={`relative z-10 flex-shrink-0 w-[50px] h-[50px] rounded flex items-center justify-center ${
-                        step.status === "completed"
-                          ? "bg-teal-100 text-teal-600"
-                          : "bg-gray-100 text-gray-400"
-                      }`}
+                      className={`relative z-10 flex-shrink-0 w-[50px] h-[50px] rounded flex items-center justify-center ${step.status === "completed"
+                        ? "bg-teal-100 text-teal-600"
+                        : "bg-gray-100 text-gray-400"
+                        }`}
                     >
                       {step.status === "completed" && (
                         <CheckCircle2 className="w-8 h-8" />
@@ -183,11 +182,10 @@ export default function DealDetailsPage() {
                           {step.title}
                         </h4>
                         <span
-                          className={`text-sm ${
-                            step.status === "completed"
-                              ? "text-teal-600"
-                              : "text-gray-500"
-                          }`}
+                          className={`text-sm ${step.status === "completed"
+                            ? "text-teal-600"
+                            : "text-gray-500"
+                            }`}
                         >
                           {step.date}
                         </span>
@@ -241,31 +239,28 @@ export default function DealDetailsPage() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className={`flex items-start gap-3 p-3 rounded-xl ${
-                      item.status === "submitted"
-                        ? "bg-green-50 border border-green-100"
-                        : "bg-gray-100 border border-gray-300"
-                    }`}
+                    className={`flex items-start gap-3 p-3 rounded-xl ${item.status === "submitted"
+                      ? "bg-green-50 border border-green-100"
+                      : "bg-gray-100 border border-gray-300"
+                      }`}
                   >
                     <div
-                      className={`w-12 h-12 rounded flex items-center justify-center text-sm font-bold ${
-                        item.platform === "Instagram"
-                          ? "bg-green-100 border border-green-300 text-green-700"
-                          : item.platform === "TikTok"
+                      className={`w-12 h-12 rounded flex items-center justify-center text-sm font-bold ${item.platform === "Instagram"
+                        ? "bg-green-100 border border-green-300 text-green-700"
+                        : item.platform === "TikTok"
                           ? "bg-green-100 border border-green-300 text-green-700"
                           : "bg-gray-100 border border-gray-300 text-gray-700"
-                      }`}
+                        }`}
                     >
                       {item.emoji}
                     </div>
                     <div className="">
                       <p className="font-medium text-gray-900">{item.title}</p>
                       <Badge
-                        className={`mt-1 text-xs gap-1 ${
-                          item.status === "submitted"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
+                        className={`mt-1 text-xs gap-1 ${item.status === "submitted"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                          }`}
                       >
                         {item.status === "submitted" ? (
                           <>Submitted</>
@@ -308,13 +303,12 @@ export default function DealDetailsPage() {
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className={`w-12 h-12 rounded flex items-center justify-center text-sm font-bold ${
-                          video.platform === "YouTube"
-                            ? "bg-gray-100 border border-gray-300 text-gray-700"
-                            : video.platform === "TikTok"
+                        className={`w-12 h-12 rounded flex items-center justify-center text-sm font-bold ${video.platform === "YouTube"
+                          ? "bg-gray-100 border border-gray-300 text-gray-700"
+                          : video.platform === "TikTok"
                             ? "bg-gray-100 border border-gray-300 text-gray-700"
                             : "bg-gray-100 border border-gray-300 text-gray-700"
-                        }`}
+                          }`}
                       >
                         {video.icon}
                       </div>

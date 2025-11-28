@@ -29,13 +29,15 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
         />
       </div>
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full border border-teal-600 w-10 h-10"
-        >
-          <MessageSquareMore className="h-10 w-10 text-teal-600" />
-        </Button>
+        <Link href="/dashboard/chat">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full border border-teal-600 w-10 h-10"
+          >
+            <MessageSquareMore className="h-10 w-10 text-teal-600" />
+          </Button>
+        </Link>
         <Link href="/dashboard/notifications">
           <Button
             variant="ghost"

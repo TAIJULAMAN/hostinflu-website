@@ -11,10 +11,10 @@ interface StatCardProps {
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  primary: 'bg-blue-50 text-blue-600',
-  success: 'bg-green-50 text-green-600',
-  warning: 'bg-amber-50 text-amber-600',
-  info: 'bg-cyan-50 text-cyan-600',
+  primary: 'bg-blue-100 text-blue-600',
+  success: 'bg-green-100 text-green-600',
+  warning: 'bg-amber-100 text-amber-600',
+  info: 'bg-cyan-100 text-cyan-600',
 };
 
 const variantIcons: Record<CardVariant, React.ReactNode> = {
@@ -24,14 +24,14 @@ const variantIcons: Record<CardVariant, React.ReactNode> = {
   info: <DollarSign className="w-6 h-6" />,
 };
 
-export function StatCard({ 
-  value, 
-  label, 
+export function StatCard({
+  value,
+  label,
   variant = 'primary',
   icon
 }: StatCardProps) {
   const IconComponent = variantIcons[variant];
-  
+
   return (
     <div className={`relative flex flex-col p-4 rounded-lg ${variantStyles[variant]} transition-all hover:shadow-md`}>
       <div className="flex justify-between items-center mb-2">

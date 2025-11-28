@@ -33,8 +33,8 @@ export function Hero() {
                         </div>
                     </div>
 
-                    <div className="relative h-96 flex items-center justify-center">
-                        <Image src="/hero.png" alt="Hero" width={500} height={500} />
+                    <div className="relative h-96 flex items-center justify-center ">
+                        <Image src="/hero2.png" alt="Hero" width={500} height={500} />
 
                         <div className="absolute top-8 right-8 bg-white shadow-lg px-2 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
