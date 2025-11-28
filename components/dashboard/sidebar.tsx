@@ -98,7 +98,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 Transactions
               </Link>
               <Link
-                href="/dashboard/redeem"
+                href="/dashboard/redeem-requests"
                 className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               >
                 <BadgeDollarSign className="h-5 w-5" />
@@ -122,32 +122,32 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           ) : (
             <>
               <Link
-                href="/dashboard"
+                href="/dashboard/influencer"
                 className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-teal-600 bg-teal-50 rounded-md"
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Link>
               <Link
-                href="/dashboard/collaborations"
+                href="/dashboard/influencer-collaborations"
                 className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               >
                 <Handshake className="h-5 w-5" />
                 Collaborations
               </Link>
               <Link
-                href="/dashboard/transactions"
+                href="/dashboard/influencer-transactions"
                 className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               >
                 <DollarSign className="h-5 w-5" />
                 Transactions
               </Link>
               <Link
-                href="/dashboard/night-stars"
+                href="/dashboard/influencer-redeem-requests"
                 className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               >
                 <Star className="h-5 w-5" />
-                Night Stars
+                Redeem Stars
               </Link>
               <Link
                 href="/dashboard/chat"
