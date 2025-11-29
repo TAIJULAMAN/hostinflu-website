@@ -21,7 +21,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { WithdrawModal } from "@/components/dashboard/withdraw-modal";
 import { SuccessModal } from "@/components/dashboard/success-modal";
 
-// Mock redeem request data for influencer
 const redeemRequests = [
     {
         id: "REQ001",
