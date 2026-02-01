@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/Redux/Slice/authSlice";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,11 @@ import Image from "next/image";
 
 export function Navbar() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { user, token } = useSelector((state: any) => state.auth);
+  console.log("user", user);
+  console.log("token", token);
+  const isAuthenticated = !!token;
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -32,7 +37,7 @@ export function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     router.push("/");
   };
 
@@ -129,13 +134,8 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none">
-                  <Avatar className="w-8 h-8 border-2 border-gray-200">
-                    <AvatarFallback className="bg-teal-500 text-white text-sm font-semibold">
-                      {user.fullName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-black">{user.fullName}</span>
+                    <span className="text-sm font-medium text-black">{user.name}</span>
                     <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
                       {user.role}
                     </span>
@@ -145,7 +145,7 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user.fullName}</p>
+                    <p className="text-sm font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
