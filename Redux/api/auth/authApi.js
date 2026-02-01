@@ -1,0 +1,49 @@
+import { baseApi } from "../baseApi";
+
+const authApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    logIn: builder.mutation({
+      query: (data) => {
+        console.log("Data being sent to the API:", data);
+        return {
+          url: "admin/admin-login",
+          method: "POST",
+          body: data,
+        };
+      },
+      invalidatesTags: ["auth"],
+    }),
+    forgotPassword: builder.mutation({
+      query: (data) => ({
+        url: "admin/forgot-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    verifyEmail: builder.mutation({
+      query: (data) => ({
+        url: "admin/otp-verify",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: ({ newPassword, confirmPassword, email }) => ({
+        url: "admin/reset-password",
+        method: "POST",
+        body: { newPassword, confirmPassword, email },
+      }),
+
+      invalidatesTags: ["auth"],
+    }),
+  }),
+});
+
+export const {
+  useLogInMutation,
+  useForgotPasswordMutation,
+  useVerifyEmailMutation,
+  useResetPasswordMutation,
+} = authApi;
+
+export default authApi;
