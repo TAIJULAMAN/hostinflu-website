@@ -9,9 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
@@ -22,24 +21,23 @@ export default function Lists() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [status, setStatus] = useState("");
-    const [limit, setLimit] = useState(10);
+    const limit = 10;
 
     const { data: listData, isLoading } = useGetAllListsQuery({
-        currentPage: 1,
-        limit: 10,
+        currentPage,
+        limit,
     });
     console.log(listData, "listData");
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
+    console.log(listings, "listings of list page");
 
     const filteredListings = listings.filter((item: any) =>
         item.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const totalPages = Math.ceil(filteredListings.length / limit);
-    const startIndex = (currentPage - 1) * limit;
-    const paginatedListings = filteredListings.slice(startIndex, startIndex + limit);
+    const totalPages = listData?.totalPages || listData?.meta?.totalPage || 0;
 
     const getPageNumbers = () => {
         const pages = [];
@@ -215,7 +213,7 @@ export default function Lists() {
                             </TableCell>
                         </TableRow>
                     ) : (
-                        paginatedListings.map((item: any) => (
+                        filteredListings.map((item: any) => (
                             <TableRow key={item._id} className="hover:bg-gray-50">
                                 <TableCell>
                                     <Image
@@ -279,56 +277,58 @@ export default function Lists() {
                 </TableBody>
             </Table>
             {/* Pagination */}
-            {totalPages > 0 && (
-                <div className="mt-6 flex justify-center items-center gap-2">
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className={`p-2 rounded-lg border transition-colors ${currentPage === 1
-                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                            }`}
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </button>
+            {
+                totalPages > 0 && (
+                    <div className="mt-6 flex justify-center items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className={`p-2 rounded-lg border transition-colors ${currentPage === 1
+                                ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                                : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
 
-                    <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, index) => {
-                            if (page === "ellipsis-start" || page === "ellipsis-end") {
+                        <div className="flex items-center gap-1">
+                            {getPageNumbers().map((page, index) => {
+                                if (page === "ellipsis-start" || page === "ellipsis-end") {
+                                    return (
+                                        <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                                            ...
+                                        </span>
+                                    );
+                                }
+
                                 return (
-                                    <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
-                                        ...
-                                    </span>
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(Number(page))}
+                                        className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                                            ? "bg-[#10B981CC] text-white"
+                                            : "text-gray-600 hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
                                 );
-                            }
+                            })}
+                        </div>
 
-                            return (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(Number(page))}
-                                    className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === page
-                                        ? "bg-[#10B981CC] text-white"
-                                        : "text-gray-600 hover:bg-gray-50"
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            );
-                        })}
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className={`p-2 rounded-lg border transition-colors ${currentPage === totalPages
+                                ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                                : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
                     </div>
-
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className={`p-2 rounded-lg border transition-colors ${currentPage === totalPages
-                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                            }`}
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
-                </div>
-            )}
+                )
+            }
             <DeleteModal
                 isOpen={deleteModal.isOpen}
                 onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}

@@ -3,9 +3,10 @@ import { baseApi } from "../../baseApi";
 export const listApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAllLists: builder.query({
-            query: ({ currentPage, limit }) => ({
-                url: `listing/all-listings?currentPage=${currentPage}&limit=${limit}`,
+            query: (params) => ({
+                url: `listing/my-listings`,
                 method: "GET",
+                params,
             }),
             providesTags: ["list"],
         }),

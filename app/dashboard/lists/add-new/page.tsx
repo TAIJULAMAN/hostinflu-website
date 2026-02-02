@@ -11,7 +11,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { PageHeading } from "@/components/commom/pageHeading";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,18 +22,14 @@ import { toast } from "sonner";
 export default function AddNewListingPage() {
     const router = useRouter();
     const [createList, { isLoading }] = useCreateListMutation();
-
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [location, setLocation] = useState("");
     const [propertyType, setPropertyType] = useState("");
     const [addAirbnbLink, setAddAirbnbLink] = useState("");
-
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
     const [customAmenities, setCustomAmenities] = useState<string[]>([]);
     const [newAmenityInput, setNewAmenityInput] = useState("");
-
-    // Images state
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 

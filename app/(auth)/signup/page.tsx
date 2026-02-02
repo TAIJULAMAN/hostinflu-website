@@ -73,7 +73,6 @@ export default function SignUpPage() {
       // Redirect to login or verification page
       router.push("/signin");
     } catch (error: any) {
-      console.error("Signup error:", error);
       toast.error(error?.data?.message || "Something went wrong. Please try again.");
     }
   };
