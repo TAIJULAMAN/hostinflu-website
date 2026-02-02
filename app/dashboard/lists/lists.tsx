@@ -11,14 +11,16 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { useGetAllListsQuery, useDeleteListMutation } from "@/Redux/api/host/list/listApi";
 import { imgUrl } from "@/config/envConfig";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { setList } from "@/Redux/Slice/listSlice";
 
 export default function Lists() {
+    const dispatch = useDispatch();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [status, setStatus] = useState("");
@@ -28,11 +30,11 @@ export default function Lists() {
         currentPage,
         limit,
     });
-    console.log(listData, "listData");
+    // console.log(listData, "listData");
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
-    console.log(listings, "listings of list page");
+    // console.log(listings, "listings of list page");
 
     const filteredListings = listings.filter((item: any) =>
         item.title?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -249,6 +251,7 @@ export default function Lists() {
                                             href={`/dashboard/lists/details/${item._id}`}
                                             className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
                                             title="View Details"
+                                            onClick={() => dispatch(setList(item))}
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Link>

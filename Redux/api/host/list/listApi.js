@@ -10,6 +10,13 @@ export const listApi = baseApi.injectEndpoints({
             }),
             providesTags: ["list"],
         }),
+        getSingleListing: builder.query({
+            query: (id) => ({
+                url: `listing/single-listing/${id}`,
+                method: "GET",
+            }),
+            providesTags: ["list"],
+        }),
         createList: builder.mutation({
             query: (data) => ({
                 url: "listing/create-listing",
@@ -39,6 +46,7 @@ export const listApi = baseApi.injectEndpoints({
 
 export const {
     useGetAllListsQuery,
+    useGetSingleListingQuery,
     useCreateListMutation,
     useUpdateListMutation,
     useDeleteListMutation,

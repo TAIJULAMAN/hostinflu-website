@@ -3,6 +3,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
 import { authSlice } from "./Slice/authSlice";
+import { listSlice } from "./Slice/listSlice";
 import { baseApi } from "./api/baseApi";
 
 const createNoopStorage = () => {
@@ -33,6 +34,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
   auth: authSlice.reducer,
+  list: listSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
