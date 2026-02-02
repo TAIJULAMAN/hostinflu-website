@@ -113,12 +113,12 @@ export default function AddNewListingPage() {
 
         try {
             const res = await createList(formData).unwrap();
-            if (res.success) {
-                toast.success(res.message || "Listing created successfully!");
+            console.log(res, "res of list");
+            if (res?.message) {
+                toast.success(res?.message || "Listing created successfully!");
                 router.push("/dashboard/lists");
             }
         } catch (error: any) {
-            console.error("Failed to create listing:", error);
             toast.error(error?.data?.message || "Failed to create listing");
         }
     };

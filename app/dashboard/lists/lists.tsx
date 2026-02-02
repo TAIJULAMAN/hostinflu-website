@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { useGetAllListsQuery, useDeleteListMutation } from "@/Redux/api/host/list/listApi";
+import { imgUrl } from "@/config/envConfig";
 import Image from "next/image";
 
 export default function Lists() {
@@ -38,7 +39,6 @@ export default function Lists() {
     );
 
     const totalPages = listData?.totalPages || listData?.meta?.totalPage || 0;
-
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 3;
@@ -80,8 +80,6 @@ export default function Lists() {
 
         return pages;
     };
-
-
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case "verified":
@@ -217,7 +215,7 @@ export default function Lists() {
                             <TableRow key={item._id} className="hover:bg-gray-50">
                                 <TableCell>
                                     <Image
-                                        src="/list.png"
+                                        src={item?.images?.[0] ? `${imgUrl}${item.images[0]}` : "/list.png"}
                                         alt={item.title}
                                         width={48}
                                         height={48}
