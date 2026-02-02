@@ -12,28 +12,35 @@ import {
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-} from "@/components/ui/pagination";
+
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { lists } from "./data";
-
-
-const ITEMS_PER_PAGE = 8;
+import { useGetAllListsQuery, useDeleteListMutation } from "@/Redux/api/host/list/listApi";
+import Image from "next/image";
 
 export default function Lists() {
-    const [currentPage, setCurrentPage] = React.useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [status, setStatus] = useState("");
+    const [limit, setLimit] = useState(10);
 
-    // Calculate pagination
-    const totalPages = Math.ceil(lists.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentLists = lists.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const { data: listData, isLoading } = useGetAllListsQuery({
+        currentPage: 1,
+        limit: 10,
+    });
+    console.log(listData, "listData");
 
-    // Generate page numbers to show
+    const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
+    const listings = listData?.data?.listings || [];
+
+    const filteredListings = listings.filter((item: any) =>
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredListings.length / limit);
+    const startIndex = (currentPage - 1) * limit;
+    const paginatedListings = filteredListings.slice(startIndex, startIndex + limit);
+
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 3;
@@ -76,6 +83,7 @@ export default function Lists() {
         return pages;
     };
 
+
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case "verified":
@@ -111,7 +119,7 @@ export default function Lists() {
         setDeleteModal((prev) => ({ ...prev, isLoading: true }));
 
         try {
-            // Close the modal
+            await deleteList({ id: deleteModal.listId }).unwrap();
             setDeleteModal({
                 isOpen: false,
                 listId: null,
@@ -128,7 +136,6 @@ export default function Lists() {
             <div className="flex flex-col space-y-4 mb-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-xl font-semibold text-gray-800">All Listings</h2>
-
                     <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 items-stretch">
                         <div className="relative flex-1 min-w-[200px]">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,16 +157,20 @@ export default function Lists() {
                                 type="text"
                                 placeholder="Search properties..."
                                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm h-full"
+                                value={searchTerm}
                                 onChange={(e) => {
-
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
                                 }}
                             />
                         </div>
 
                         <select
                             className="block w-full sm:w-36 px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-700 h-full"
+                            value={status}
                             onChange={(e) => {
-
+                                setStatus(e.target.value);
+                                setCurrentPage(1);
                             }}
                         >
                             <option value="">All Status</option>
@@ -191,121 +202,131 @@ export default function Lists() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {currentLists.map((item) => (
-                        <TableRow key={item.id} className="hover:bg-gray-50">
-                            <TableCell>
-                                <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="w-12 h-12 rounded-md object-cover"
-                                />
-                            </TableCell>
-                            <TableCell className="font-medium text-gray-900">
-                                {item.name}
-                            </TableCell>
-                            <TableCell className="text-gray-600">{item.date}</TableCell>
-                            <TableCell>
-                                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {item.propertyType}
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <span
-                                    className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                                        item.status
-                                    )}`}
-                                >
-                                    {item.status}
-                                </span>
-                            </TableCell>
-                            <TableCell className="text-gray-500">{item.location}</TableCell>
-                            <TableCell>
-                                <div className="flex space-x-2">
-                                    <Link
-                                        href={`/dashboard/lists/details/${item.id}`}
-                                        className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                        title="View Details"
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                    </Link>
-                                    <Link
-                                        href={`/dashboard/lists/edit/${item.id}`}
-                                        className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                        title="Edit"
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </Link>
-                                    <button
-                                        onClick={() => handleDeleteClick(item.id)}
-                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                        title="Delete"
-                                        disabled={deleteModal.isLoading}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
+                    {isLoading ? (
+                        <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                Loading listings...
                             </TableCell>
                         </TableRow>
-                    ))}
+                    ) : listings.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                No listings found.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        paginatedListings.map((item: any) => (
+                            <TableRow key={item._id} className="hover:bg-gray-50">
+                                <TableCell>
+                                    <Image
+                                        src="/list.png"
+                                        alt={item.title}
+                                        width={48}
+                                        height={48}
+                                        className="rounded-md object-cover"
+                                    />
+                                </TableCell>
+                                <TableCell className="font-medium text-gray-900">
+                                    {item.title}
+                                </TableCell>
+                                <TableCell className="text-gray-600">
+                                    {new Date(item.createdAt).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {item.propertyType}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <span
+                                        className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                                            item.status
+                                        )}`}
+                                    >
+                                        {item.status}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-gray-500">{item.location}</TableCell>
+                                <TableCell>
+                                    <div className="flex space-x-2">
+                                        <Link
+                                            href={`/dashboard/lists/details/${item._id}`}
+                                            className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                                            title="View Details"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
+                                        <Link
+                                            href={`/dashboard/lists/edit/${item._id}`}
+                                            className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                                            title="Edit"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDeleteClick(item._id)}
+                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                            title="Delete"
+                                            disabled={deleteModal.isLoading}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
                 </TableBody>
             </Table>
-
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="mt-6 flex justify-center">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                    className="h-8 w-8 p-0"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
+            {totalPages > 0 && (
+                <div className="mt-6 flex justify-center items-center gap-2">
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg border transition-colors ${currentPage === 1
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
 
-                            {getPageNumbers().map((page, index) => {
-                                if (page === "ellipsis-start" || page === "ellipsis-end") {
-                                    return (
-                                        <PaginationItem key={`ellipsis-${index}`}>
-                                            <PaginationEllipsis />
-                                        </PaginationItem>
-                                    );
-                                }
-
+                    <div className="flex items-center gap-1">
+                        {getPageNumbers().map((page, index) => {
+                            if (page === "ellipsis-start" || page === "ellipsis-end") {
                                 return (
-                                    <PaginationItem key={page}>
-                                        <Button
-                                            variant={currentPage === page ? "default" : "outline"}
-                                            size="sm"
-                                            className={`h-8 w-8 p-0 ${currentPage === page ? "bg-[#10B981CC]" : ""
-                                                }`}
-                                            onClick={() => setCurrentPage(Number(page))}
-                                        >
-                                            {page}
-                                        </Button>
-                                    </PaginationItem>
+                                    <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                                        ...
+                                    </span>
                                 );
-                            })}
+                            }
 
-                            <PaginationItem>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                                    }
-                                    disabled={currentPage === totalPages}
-                                    className="h-8 w-8 p-0"
+                            return (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(Number(page))}
+                                    className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                                        ? "bg-[#10B981CC] text-white"
+                                        : "text-gray-600 hover:bg-gray-50"
+                                        }`}
                                 >
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                                    {page}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg border transition-colors ${currentPage === totalPages
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
                 </div>
             )}
             <DeleteModal

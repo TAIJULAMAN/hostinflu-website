@@ -16,16 +16,28 @@ import { PageHeading } from "@/components/commom/pageHeading";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, X } from "lucide-react";
+import { useCreateListMutation } from "@/Redux/api/host/list/listApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function AddNewListingPage() {
+    const router = useRouter();
+    const [createList, { isLoading }] = useCreateListMutation();
+
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [location, setLocation] = useState("");
+    const [propertyType, setPropertyType] = useState("");
+    const [addAirbnbLink, setAddAirbnbLink] = useState("");
+
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
     const [customAmenities, setCustomAmenities] = useState<string[]>([]);
     const [newAmenityInput, setNewAmenityInput] = useState("");
-    const [uploadedImages, setUploadedImages] = useState<string[]>([
-        "https://picsum.photos/400/300?random=1",
-        "https://picsum.photos/400/300?random=2",
-        "https://picsum.photos/400/300?random=3",
-    ]);
+
+    // Images state
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const amenitiesList = [
@@ -50,6 +62,7 @@ export default function AddNewListingPage() {
 
     const handleRemoveImage = (index: number) => {
         setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleAddCustomAmenity = () => {
@@ -62,17 +75,56 @@ export default function AddNewListingPage() {
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files) {
+            const newFiles = Array.from(files);
+            setSelectedFiles((prev) => [...prev, ...newFiles]);
+
             const newImages: string[] = [];
-            Array.from(files).forEach((file) => {
+            newFiles.forEach((file) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     newImages.push(reader.result as string);
-                    if (newImages.length === files.length) {
+                    if (newImages.length === newFiles.length) {
                         setUploadedImages((prev) => [...prev, ...newImages]);
                     }
                 };
                 reader.readAsDataURL(file);
             });
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!title || !description || !location || !propertyType) {
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("location", location);
+        formData.append("propertyType", propertyType);
+        formData.append("addAirbnbLink", addAirbnbLink);
+        const amenitiesObject = selectedAmenities.reduce((acc, amenity) => {
+            acc[amenity] = true;
+            return acc;
+        }, {} as Record<string, boolean>);
+        formData.append("amenities", JSON.stringify(amenitiesObject));
+        if (customAmenities.length > 0) {
+            formData.append("customAmenities", customAmenities.join(","));
+        }
+        selectedFiles.forEach((file) => {
+            formData.append("images", file);
+        });
+
+        try {
+            const res = await createList(formData).unwrap();
+            if (res.success) {
+                toast.success(res.message || "Listing created successfully!");
+                router.push("/dashboard/lists");
+            }
+        } catch (error: any) {
+            console.error("Failed to create listing:", error);
+            toast.error(error?.data?.message || "Failed to create listing");
         }
     };
 
@@ -98,7 +150,11 @@ export default function AddNewListingPage() {
                                 <label className="text-sm font-medium text-gray-700">
                                     Property Title <span className="text-red-500">*</span>
                                 </label>
-                                <Input placeholder="GreenStay Villa" />
+                                <Input
+                                    placeholder="GreenStay Villa"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -108,6 +164,8 @@ export default function AddNewListingPage() {
                                 <Textarea
                                     placeholder="Describe your property, its unique features, and what makes it special..."
                                     className="min-h-[120px]"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
                                 />
                             </div>
 
@@ -116,27 +174,42 @@ export default function AddNewListingPage() {
                                     <label className="text-sm font-medium text-gray-700">
                                         Location <span className="text-red-500">*</span>
                                     </label>
-                                    <Input placeholder="Enter address or city" />
+                                    <Input
+                                        placeholder="Enter address or city"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">
                                         Property Type <span className="text-red-500">*</span>
                                     </label>
-                                    <Select>
+                                    <Select value={propertyType} onValueChange={setPropertyType}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select property type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="apartment">Apartment</SelectItem>
-                                            <SelectItem value="villa">Villa</SelectItem>
-                                            <SelectItem value="hotel">Hotel</SelectItem>
-                                            <SelectItem value="resort">Resort</SelectItem>
-                                            <SelectItem value="cabin">Cabin</SelectItem>
-                                            <SelectItem value="lodge">Lodge</SelectItem>
+                                            <SelectItem value="Apartment">Apartment</SelectItem>
+                                            <SelectItem value="Villa">Villa</SelectItem>
+                                            <SelectItem value="Hotel">Hotel</SelectItem>
+                                            <SelectItem value="Resort">Resort</SelectItem>
+                                            <SelectItem value="Cabin">Cabin</SelectItem>
+                                            <SelectItem value="Lodge">Lodge</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Airbnb Link (Optional)
+                                </label>
+                                <Input
+                                    placeholder="https://airbnb.com/..."
+                                    value={addAirbnbLink}
+                                    onChange={(e) => setAddAirbnbLink(e.target.value)}
+                                />
                             </div>
                         </div>
                     </section>
@@ -281,13 +354,15 @@ export default function AddNewListingPage() {
                                 Cancel
                             </Button>
                         </Link>
-                        <Link href="/dashboard/lists">
-                            <Button
-                                type="button"
-                                variant="outline">
-                                Save Listing
-                            </Button>
-                        </Link>
+
+                        <Button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="bg-teal-600 hover:bg-teal-700 text-white"
+                        >
+                            {isLoading ? "Saving..." : "Save Listing"}
+                        </Button>
                     </div>
                 </div>
             </div>

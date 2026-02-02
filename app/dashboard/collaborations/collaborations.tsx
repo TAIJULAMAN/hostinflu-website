@@ -188,7 +188,6 @@ export default function Collaborations() {
                 <TableHeader>
                     <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
                         <TableHead className="rounded-tl-lg">INFLUENCER</TableHead>
-                        {/* <TableHead>LIST NAME</TableHead> */}
                         <TableHead>DEAL NAME</TableHead>
                         <TableHead>DURATION</TableHead>
                         <TableHead>PAYMENT</TableHead>
@@ -210,9 +209,7 @@ export default function Collaborations() {
                                     <span className="font-medium text-gray-900">{item.influencer}</span>
                                 </div>
                             </TableCell>
-                            {/* <TableCell className="text-gray-600">
-                                {item.listName}
-                            </TableCell> */}
+
                             <TableCell className="text-gray-600">
                                 {item.dealName}
                             </TableCell>
