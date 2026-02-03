@@ -25,7 +25,7 @@ export default function Lists() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [status, setStatus] = useState("pending");
-    // const limit = 10;
+    const limit = 10;
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
     const { data: allListData, isLoading: isAllLoading } = useGetAllListsQuery({
@@ -46,9 +46,9 @@ export default function Lists() {
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
+    console.log("listings", listings);
 
-    const filteredListings = listings.filter((item: any) => {
-        // Server-side search handles title filtering
+    const filteredListings = listings?.filter((item: any) => {
         const matchesStatus = status ? item.status === status : true;
         return matchesStatus;
     });
