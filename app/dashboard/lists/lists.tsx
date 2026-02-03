@@ -30,11 +30,9 @@ export default function Lists() {
         currentPage,
         limit,
     });
-    // console.log(listData, "listData");
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
-    // console.log(listings, "listings of list page");
 
     const filteredListings = listings.filter((item: any) =>
         item.title?.toLowerCase().includes(searchTerm.toLowerCase())
