@@ -13,7 +13,8 @@ import { Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { useGetAllListsQuery, useDeleteListMutation } from "@/Redux/api/host/list/listApi";
+import { useGetAllListsQuery, useDeleteListMutation, useSearchListQuery } from "@/Redux/api/host/list/listApi";
+import { useDebounce } from "@/hooks/useDebounce";
 import { imgUrl } from "@/config/envConfig";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
@@ -23,22 +24,33 @@ export default function Lists() {
     const dispatch = useDispatch();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
-    const [status, setStatus] = useState("");
-    const limit = 10;
+    const [status, setStatus] = useState("pending");
+    // const limit = 10;
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-    const { data: listData, isLoading } = useGetAllListsQuery({
+    const { data: allListData, isLoading: isAllLoading } = useGetAllListsQuery({
         currentPage,
         limit,
         status: status || undefined,
-    });
+    }, { skip: !!debouncedSearchTerm });
+
+    const { data: searchListData, isLoading: isSearchLoading } = useSearchListQuery({
+        query: "listings",
+        searchType: debouncedSearchTerm,
+        currentPage,
+        limit,
+    }, { skip: !debouncedSearchTerm });
+
+    const listData = debouncedSearchTerm ? searchListData : allListData;
+    const isLoading = debouncedSearchTerm ? isSearchLoading : isAllLoading;
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
 
     const filteredListings = listings.filter((item: any) => {
-        const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+        // Server-side search handles title filtering
         const matchesStatus = status ? item.status === status : true;
-        return matchesSearch && matchesStatus;
+        return matchesStatus;
     });
 
     const totalPages = listData?.totalPages || listData?.meta?.totalPage || 0;
@@ -169,12 +181,13 @@ export default function Lists() {
                             value={status}
                             onChange={(e) => {
                                 setStatus(e.target.value);
-                                // setCurrentPage(1);
+                                setCurrentPage(1);
                             }}
                         >
                             <option value="">All Status</option>
-                            <option value="verified">Verified</option>
-                            <option value="pending">Pending</option>
+                            <option value="verified">verified</option>
+                            <option value="pending">pending</option>
+                            <option value="rejected">rejected</option>
                         </select>
 
                         <Link

@@ -40,6 +40,14 @@ export const listApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["list"],
         }),
+        searchList: builder.query({
+            query: (params) => ({
+                url: `search/specific`,
+                method: "GET",
+                params,
+            }),
+            providesTags: ["list"],
+        }),
 
     }),
 });
@@ -50,4 +58,5 @@ export const {
     useCreateListMutation,
     useUpdateListMutation,
     useDeleteListMutation,
+    useSearchListQuery,
 } = listApi;

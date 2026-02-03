@@ -36,14 +36,21 @@ const ITEMS_PER_PAGE = 10;
 export default function ActiveDeals() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [status, setStatus] = useState("");
 
   const { data: dealsData, isLoading } = useGetAllDealsQuery({
     currentPage,
     limit: ITEMS_PER_PAGE,
-    searchTerm: searchTerm || undefined,
+    status: status || undefined,
   });
 
   const dealsList = dealsData?.data?.deals || [];
+
+  const filteredDeals = dealsList.filter((deal: any) => {
+    const matchesSearch = deal?.title?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = status ? deal.status === status : true;
+    return matchesSearch && matchesStatus;
+  });
   const totalPages = dealsData?.totalPages || 0;
   const getPageNumbers = () => {
     const pages = [];
@@ -160,6 +167,20 @@ export default function ActiveDeals() {
                 }}
               />
             </div>
+
+            <select
+              className="block w-full sm:w-36 px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-700 h-full"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
             <Link
               href="/dashboard/active-deals/add-new"
               className="px-4 py-2 bg-[#10B981CC] text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2 whitespace-nowrap h-full"
@@ -199,7 +220,7 @@ export default function ActiveDeals() {
               </TableCell>
             </TableRow>
           ) : (
-            dealsList.map((deal: any, index: number) => (
+            filteredDeals.map((deal: any, index: number) => (
               <TableRow key={deal._id} className="hover:bg-gray-50">
                 <TableCell className="font-medium text-gray-900">
                   {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
