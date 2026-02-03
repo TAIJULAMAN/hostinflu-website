@@ -29,14 +29,17 @@ export default function Lists() {
     const { data: listData, isLoading } = useGetAllListsQuery({
         currentPage,
         limit,
+        status: status || undefined,
     });
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
 
-    const filteredListings = listings.filter((item: any) =>
-        item.title?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredListings = listings.filter((item: any) => {
+        const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = status ? item.status === status : true;
+        return matchesSearch && matchesStatus;
+    });
 
     const totalPages = listData?.totalPages || listData?.meta?.totalPage || 0;
     const getPageNumbers = () => {
@@ -166,7 +169,7 @@ export default function Lists() {
                             value={status}
                             onChange={(e) => {
                                 setStatus(e.target.value);
-                                setCurrentPage(1);
+                                // setCurrentPage(1);
                             }}
                         >
                             <option value="">All Status</option>
@@ -188,7 +191,8 @@ export default function Lists() {
             <Table>
                 <TableHeader>
                     <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-                        <TableHead className="rounded-tl-lg">IMAGE</TableHead>
+                        <TableHead className="rounded-tl-lg">S.NO</TableHead>
+                        <TableHead>IMAGE</TableHead>
                         <TableHead>PROPERTY NAME</TableHead>
                         <TableHead>DATE ADDED</TableHead>
                         <TableHead>PROPERTY TYPE</TableHead>
@@ -211,8 +215,11 @@ export default function Lists() {
                             </TableCell>
                         </TableRow>
                     ) : (
-                        filteredListings.map((item: any) => (
+                        filteredListings.map((item: any, index: number) => (
                             <TableRow key={item._id} className="hover:bg-gray-50">
+                                <TableCell>
+                                    {index + 1}
+                                </TableCell>
                                 <TableCell>
                                     <Image
                                         src={item?.images?.[0] ? `${imgUrl}${item.images[0]}` : "/list.png"}

@@ -9,32 +9,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Eye, Instagram, Twitter, Facebook, Youtube, Video } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-} from "@/components/ui/pagination";
 import { useState } from "react";
-// import { Trash2, Eye, Pencil } from "lucide-react"
+
 import { DeleteModal } from "@/components/ui/delete-modal";
+import { useDeleteDealMutation, useGetAllDealsQuery } from "@/Redux/api/host/deals/dealsApi";
+import Loader from "@/components/commom/loader";
+import Image from "next/image";
+import { imgUrl } from "@/config/envConfig";
 
-import { Deal, deals } from "./data";
+const getPlatformIcon = (platform: string) => {
+  switch (platform?.toLowerCase()) {
+    case "instagram": return <Instagram className="w-4 h-4 text-pink-600" />;
+    case "twitter":
+    case "x": return <Twitter className="w-4 h-4 text-blue-400" />;
+    case "facebook": return <Facebook className="w-4 h-4 text-blue-600" />;
+    case "youtube": return <Youtube className="w-4 h-4 text-red-600" />;
+    case "tiktok": return <Video className="w-4 h-4 text-black" />;
+    default: return <Video className="w-4 h-4 text-gray-500" />;
+  }
+};
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 export default function ActiveDeals() {
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Calculate pagination
-  const totalPages = Math.ceil(deals.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentDeals = deals.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const { data: dealsData, isLoading } = useGetAllDealsQuery({
+    currentPage,
+    limit: ITEMS_PER_PAGE,
+    searchTerm: searchTerm || undefined,
+  });
 
-  // Generate page numbers to show
+  const dealsList = dealsData?.data?.deals || [];
+  const totalPages = dealsData?.totalPages || 0;
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 3;
@@ -76,18 +86,6 @@ export default function ActiveDeals() {
 
     return pages;
   };
-  const getStatusColor = (status: Deal["status"]) => {
-    switch (status) {
-      case "active":
-        return "text-green-800 bg-green-100";
-      case "pending":
-        return "text-amber-800 bg-amber-100";
-      case "completed":
-        return "text-blue-800 bg-blue-100";
-      default:
-        return "text-gray-800 bg-gray-100";
-    }
-  };
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -107,12 +105,15 @@ export default function ActiveDeals() {
     });
   };
 
+  const [deleteDeal, { isLoading: isDeleting }] = useDeleteDealMutation();
+
   const handleDeleteConfirm = async () => {
     if (!deleteModal.dealId) return;
 
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
 
     try {
+      await deleteDeal({ id: deleteModal.dealId }).unwrap();
       // Close the modal
       setDeleteModal({
         isOpen: false,
@@ -152,24 +153,13 @@ export default function ActiveDeals() {
                 type="text"
                 placeholder="Search deals..."
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm h-full"
+                value={searchTerm}
                 onChange={(e) => {
-                  // Handle search logic here
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
                 }}
               />
             </div>
-
-            <select
-              className="block w-full sm:w-36 px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-700 h-full"
-              onChange={(e) => {
-                // Handle status filter logic here
-              }}
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-            </select>
-
             <Link
               href="/dashboard/active-deals/add-new"
               className="px-4 py-2 bg-[#10B981CC] text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2 whitespace-nowrap h-full"
@@ -184,125 +174,156 @@ export default function ActiveDeals() {
       <Table>
         <TableHeader>
           <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-            <TableHead className="rounded-tl-lg">LIST NAME</TableHead>
-            <TableHead>INFLUENCER</TableHead>
-            <TableHead>STATUS</TableHead>
+            <TableHead className="rounded-tl-lg">S.NO</TableHead>
+            <TableHead>IMAGE</TableHead>
+            <TableHead>LIST NAME</TableHead>
+            <TableHead>NIGHT STAY</TableHead>
             <TableHead>AMOUNT</TableHead>
-            <TableHead>CATEGORY</TableHead>
+            <TableHead>DELIVERABLES</TableHead>
             <TableHead>START DATE</TableHead>
             <TableHead>END DATE</TableHead>
             <TableHead className="rounded-tr-lg">ACTION</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentDeals.map((deal) => (
-            <TableRow key={deal.id} className="hover:bg-gray-50">
-              <TableCell className="font-medium text-gray-900">
-                {deal.name}
-              </TableCell>
-              <TableCell className="text-gray-600">{deal.influencer}</TableCell>
-              <TableCell>
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                    deal.status
-                  )}`}
-                >
-                  {deal.status}
-                </span>
-              </TableCell>
-              <TableCell className="font-medium">{deal.amount}</TableCell>
-              <TableCell className="text-gray-500">{deal.category}</TableCell>
-              <TableCell className="text-gray-500">{deal.startDate}</TableCell>
-              <TableCell className="text-gray-500">{deal.endDate}</TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Link
-                    href={`/dashboard/active-deals/deal-details`}
-                    className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                    title="View Details"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href={`/dashboard/active-deals/edit/${deal.id}`}
-                    className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                    title="Edit"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                  <button
-                    onClick={() => handleDeleteClick(deal.id)}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                    title="Delete"
-                    disabled={deleteModal.isLoading}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                <Loader />
               </TableCell>
             </TableRow>
-          ))}
+          ) : dealsList.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                No deals found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            dealsList.map((deal: any, index: number) => (
+              <TableRow key={deal._id} className="hover:bg-gray-50">
+                <TableCell className="font-medium text-gray-900">
+                  {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                </TableCell>
+                <TableCell>
+                  <Image
+                    src={deal?.title?.images ? `${imgUrl}${deal?.title?.images[0]}` : "/list.png"}
+                    alt={deal.title}
+                    width={50}
+                    height={50}
+                    className="rounded-lg object-cover"
+                  />
+                </TableCell>
+                <TableCell className="font-medium text-gray-900">
+                  {deal?.title?.title || "N/A"}
+                </TableCell>
+                <TableCell className="text-gray-600">{deal?.compensation?.numberOfNights || "N/A"}</TableCell>
+                <TableCell className="font-medium">
+                  {deal?.compensation?.paymentAmount || "N/A"}
+                </TableCell>
+                <TableCell className="text-gray-500">
+                  {deal?.deliverables?.length > 0
+                    ? (
+                      <div className="flex flex-wrap gap-2">
+                        {deal.deliverables.map((d: any, i: number) => (
+                          <div key={i} className="flex items-center gap-1">
+                            {getPlatformIcon(d.platform)}
+                            <span className="text-xs">{d.quantity} {d.contentType}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                    : "N/A"}
+                </TableCell>
+                <TableCell className="text-gray-500">
+                  {deal?.inTimeAndDate ? new Date(deal.inTimeAndDate).toLocaleDateString() : "N/A"}
+                </TableCell>
+                <TableCell className="text-gray-500">
+                  {deal?.outTimeAndDate ? new Date(deal.outTimeAndDate).toLocaleDateString() : "N/A"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Link
+                      href={`/dashboard/active-deals/deal-details`}
+                      className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      href={`/dashboard/active-deals/edit/${deal._id}`}
+                      className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                      title="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteClick(deal._id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      title="Delete"
+                      disabled={deleteModal.isLoading}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )))}
         </TableBody>
       </Table>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </PaginationItem>
+      {totalPages > 0 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className={`p-2 rounded-lg border transition-colors ${currentPage === 1
+              ? "border-gray-200 text-gray-300 cursor-not-allowed"
+              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
 
-              {getPageNumbers().map((page, index) => {
-                if (page === "ellipsis-start" || page === "ellipsis-end") {
-                  return (
-                    <PaginationItem key={`ellipsis-${index}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  );
-                }
-
+          <div className="flex items-center gap-1">
+            {getPageNumbers().map((page, index) => {
+              if (page === "ellipsis-start" || page === "ellipsis-end") {
                 return (
-                  <PaginationItem key={page}>
-                    <Button
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      className={`h-8 w-8 p-0 ${currentPage === page ? "bg-[#10B981CC]" : ""
-                        }`}
-                      onClick={() => setCurrentPage(Number(page))}
-                    >
-                      {page}
-                    </Button>
-                  </PaginationItem>
+                  <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                    ...
+                  </span>
                 );
-              })}
+              }
 
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(Number(page))}
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                    ? "bg-[#10B981CC] text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                    }`}
                 >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className={`p-2 rounded-lg border transition-colors ${currentPage === totalPages
+              ? "border-gray-200 text-gray-300 cursor-not-allowed"
+              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       )}
+
+
       <DeleteModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
@@ -311,6 +332,6 @@ export default function ActiveDeals() {
         description="Are you sure you want to delete this deal? This action cannot be undone."
         isLoading={deleteModal.isLoading}
       />
-    </div>
+    </div >
   );
 }
