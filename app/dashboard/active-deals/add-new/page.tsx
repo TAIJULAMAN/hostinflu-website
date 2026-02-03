@@ -18,42 +18,120 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Minus, Plus, Check } from "lucide-react";
+import { Calendar as CalendarIcon, Minus, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { PageHeading } from "@/components/commom/pageHeading";
 import Link from "next/link";
+import { useMyVerifiedListingsQuery } from "@/Redux/api/host/list/listApi";
+import { useCreateDealMutation } from "@/Redux/api/host/deals/dealsApi";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AddDealPage() {
-    const [contentCount, setContentCount] = useState(1);
-    const [nightCount, setNightCount] = useState(2);
-    const [compensationTypes, setCompensationTypes] = useState<string[]>(["nights"]);
+    const router = useRouter();
+    const { toast } = useToast();
+    const [createDeal, { isLoading: isCreating }] = useCreateDealMutation();
+    const { data: listsData } = useMyVerifiedListingsQuery(undefined);
+    const listings = listsData?.data?.listings || [];
+
+    // Form State
+    const [listingId, setListingId] = useState("");
+    const [description, setDescription] = useState("");
+    const [airbnbLink, setAirbnbLink] = useState("");
+    const [guestCount, setGuestCount] = useState(2);
+
+    // Schedule
     const [checkInDate, setCheckInDate] = useState<Date>();
+    const [checkInTime, setCheckInTime] = useState("14:00");
     const [checkOutDate, setCheckOutDate] = useState<Date>();
-    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
-    const [contentType, setContentType] = useState<string>("post");
-    const [addedDeliverables, setAddedDeliverables] = useState<
-        { platform: string; contentType: string; count: number }[]
-    >([]);
+    const [checkOutTime, setCheckOutTime] = useState("11:00");
+
+    // Compensation
+    const [compensationTypes, setCompensationTypes] = useState<string[]>(["nights", "payment"]);
+    const [nightCount, setNightCount] = useState(4);
+    const [paymentAmount, setPaymentAmount] = useState("");
+
+    // Deliverables
+    const [selectedPlatform, setSelectedPlatform] = useState<string | null>("Instagram");
+    const [contentType, setContentType] = useState<string>("Post");
+    const [contentCount, setContentCount] = useState(1);
+    const [followerCount, setFollowerCount] = useState("");
+    const [addedDeliverables, setAddedDeliverables] = useState<any[]>([]);
 
     const handleAddDeliverable = () => {
-        if (selectedPlatform && contentType && contentCount > 0) {
-            setAddedDeliverables((prev) => [
-                ...prev,
-                {
-                    platform: selectedPlatform,
-                    contentType,
-                    count: contentCount,
-                },
-            ]);
-            setSelectedPlatform(null);
-            setContentType("post");
-            setContentCount(1);
+        if (selectedPlatform && contentType && contentCount > 0 && followerCount) {
+            const newDeliverable = {
+                platform: selectedPlatform,
+                contentType,
+                quantity: contentCount,
+                platformFollowers: {
+                    [selectedPlatform]: followerCount
+                }
+            };
+            setAddedDeliverables([...addedDeliverables, newDeliverable]);
+            setFollowerCount("");
+        } else {
+            toast({
+                title: "Error",
+                description: "Please fill all deliverable fields including followers count.",
+                variant: "destructive",
+            });
         }
     };
 
     const handleRemoveDeliverable = (index: number) => {
         setAddedDeliverables((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async () => {
+        if (!listingId || !description || !checkInDate || !checkOutDate) {
+            toast({
+                title: "Error",
+                description: "Please fill in all required fields (Listing, Description, Dates).",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const combineDate = (date: Date, time: string) => {
+            const [hours, minutes] = time.split(':').map(Number);
+            const newDate = new Date(date);
+            newDate.setHours(hours);
+            newDate.setMinutes(minutes);
+            return newDate.toISOString();
+        };
+
+        const payload = {
+            title: listingId,
+            description,
+            addAirbnbLink: airbnbLink,
+            inTimeAndDate: combineDate(checkInDate, checkInTime),
+            outTimeAndDate: combineDate(checkOutDate, checkOutTime),
+            guestCount: Number(guestCount),
+            compensation: {
+                nightCredits: compensationTypes.includes("nights"),
+                numberOfNights: compensationTypes.includes("nights") ? nightCount : 0,
+                directPayment: compensationTypes.includes("payment"),
+                paymentAmount: compensationTypes.includes("payment") ? Number(paymentAmount) : 0
+            },
+            deliverables: addedDeliverables
+        };
+
+        try {
+            await createDeal(payload).unwrap();
+            toast({
+                title: "Success",
+                description: "Deal created successfully!",
+            });
+            router.push("/dashboard/active-deals");
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err?.data?.message || "Failed to create deal",
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -74,16 +152,18 @@ export default function AddDealPage() {
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700">
-                                            Deal Title
+                                            Select Listing
                                         </label>
-                                        <Select>
+                                        <Select value={listingId} onValueChange={setListingId}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select deal" />
+                                                <SelectValue placeholder="Choose which Listing this deal is for" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="deal1">Summer Villa Stay Promotion</SelectItem>
-                                                <SelectItem value="deal2">Winter Cozy Cabin</SelectItem>
-                                                <SelectItem value="deal3">City Break Experience</SelectItem>
+                                                {listings.map((list: any) => (
+                                                    <SelectItem key={list._id} value={list._id}>
+                                                        {list.title}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -94,27 +174,30 @@ export default function AddDealPage() {
                                         <Textarea
                                             placeholder="Describe what you expect from the influencer..."
                                             className="min-h-[100px]"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
                                         />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700">
-                                            Select Listing
-                                        </label>
-                                        <Select>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Choose which Airbnb listing this deal is for" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="listing1">Listing 1</SelectItem>
-                                                <SelectItem value="listing2">Listing 2</SelectItem>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700">
                                             Add your Airbnb Link
                                         </label>
-                                        <Input placeholder="Paste your Airbnb listing URL below" />
+                                        <Input
+                                            placeholder="Paste your Airbnb listing URL below"
+                                            value={airbnbLink}
+                                            onChange={(e) => setAirbnbLink(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Guest Count
+                                        </label>
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            value={guestCount}
+                                            onChange={(e) => setGuestCount(Number(e.target.value))}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -130,13 +213,16 @@ export default function AddDealPage() {
                                         <label className="text-sm font-medium text-gray-700">
                                             Check-in time
                                         </label>
-                                        <Select>
+                                        <Select value={checkInTime} onValueChange={setCheckInTime}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="10:00 PM" />
+                                                <SelectValue placeholder="Select Time" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="10pm">10:00 PM</SelectItem>
-                                                <SelectItem value="11pm">11:00 PM</SelectItem>
+                                                <SelectItem value="12:00">12:00 PM</SelectItem>
+                                                <SelectItem value="13:00">01:00 PM</SelectItem>
+                                                <SelectItem value="14:00">02:00 PM</SelectItem>
+                                                <SelectItem value="15:00">03:00 PM</SelectItem>
+                                                <SelectItem value="16:00">04:00 PM</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -176,13 +262,15 @@ export default function AddDealPage() {
                                         <label className="text-sm font-medium text-gray-700">
                                             Check-out time
                                         </label>
-                                        <Select>
+                                        <Select value={checkOutTime} onValueChange={setCheckOutTime}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="10:00 PM" />
+                                                <SelectValue placeholder="Select Time" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="10pm">10:00 PM</SelectItem>
-                                                <SelectItem value="11pm">11:00 PM</SelectItem>
+                                                <SelectItem value="10:00">10:00 AM</SelectItem>
+                                                <SelectItem value="11:00">11:00 AM</SelectItem>
+                                                <SelectItem value="12:00">12:00 PM</SelectItem>
+                                                <SelectItem value="13:00">01:00 PM</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -249,7 +337,7 @@ export default function AddDealPage() {
                                                         Night Credits
                                                     </h3>
                                                     <p className="text-xs text-gray-500">
-                                                        Offer free nights at your property as compensation.
+                                                        Offer free nights at your property.
                                                     </p>
                                                 </div>
                                             </div>
@@ -261,17 +349,16 @@ export default function AddDealPage() {
                                         </div>
 
                                         {compensationTypes.includes("nights") && (
-                                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200 onClick={e => e.stopPropagation()}">
                                                 <label className="text-sm font-medium text-gray-700">
                                                     Number of Nights
                                                 </label>
-                                                <div className="flex items-center space-x-3">
+                                                <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
                                                         className="h-8 w-8 bg-white"
                                                         onClick={(e) => {
-                                                            e.stopPropagation();
                                                             setNightCount(Math.max(1, nightCount - 1));
                                                         }}
                                                     >
@@ -285,7 +372,6 @@ export default function AddDealPage() {
                                                         size="icon"
                                                         className="h-8 w-8 bg-white"
                                                         onClick={(e) => {
-                                                            e.stopPropagation();
                                                             setNightCount(nightCount + 1);
                                                         }}
                                                     >
@@ -332,14 +418,16 @@ export default function AddDealPage() {
                                         </div>
 
                                         {compensationTypes.includes("payment") && (
-                                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
                                                 <label className="text-sm font-medium text-gray-700">
-                                                    Payment Amount
+                                                    Payment Amount ($)
                                                 </label>
                                                 <Input
-                                                    placeholder="$0.00"
+                                                    type="number"
+                                                    placeholder="0.00"
                                                     className="bg-white"
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    value={paymentAmount}
+                                                    onChange={(e) => setPaymentAmount(e.target.value)}
                                                 />
                                             </div>
                                         )}
@@ -360,7 +448,7 @@ export default function AddDealPage() {
                                         Select Platform
                                     </label>
                                     <div className="flex flex-wrap gap-3">
-                                        {["Instagram", "TikTok", "YouTube", "Facebook", "X (Twitter)"].map(
+                                        {["Instagram", "TikTok", "YouTube", "Facebook", "X"].map(
                                             (platform) => (
                                                 <Button
                                                     key={platform}
@@ -373,7 +461,6 @@ export default function AddDealPage() {
                                                     )}
                                                     onClick={() => setSelectedPlatform(platform)}
                                                 >
-                                                    {/* Icons would go here */}
                                                     {platform}
                                                 </Button>
                                             )
@@ -390,20 +477,17 @@ export default function AddDealPage() {
                                             <SelectValue placeholder="Select content type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="post">Post</SelectItem>
-                                            <SelectItem value="story">Story</SelectItem>
-                                            <SelectItem value="reel">Reel</SelectItem>
-                                            <SelectItem value="video">Video</SelectItem>
+                                            <SelectItem value="Post">Post</SelectItem>
+                                            <SelectItem value="Story">Story</SelectItem>
+                                            <SelectItem value="Reel">Reel</SelectItem>
+                                            <SelectItem value="Video">Video</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <p className="text-xs text-gray-400">
-                                        Choose what kind of content the influencer should create.
-                                    </p>
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">
-                                        How many contents should they create?
+                                        Quantity
                                     </label>
                                     <div className="flex items-center space-x-3">
                                         <Button
@@ -424,13 +508,22 @@ export default function AddDealPage() {
                                             <Plus className="h-3 w-3" />
                                         </Button>
                                     </div>
-                                    <p className="text-xs text-gray-400">e.g., 2 Reels + 1 Story</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Required Followers (e.g. 50k)
+                                    </label>
+                                    <Input
+                                        placeholder="Min followers"
+                                        value={followerCount}
+                                        onChange={(e) => setFollowerCount(e.target.value)}
+                                    />
                                 </div>
 
                                 <div className="flex justify-end">
                                     <Button
                                         onClick={handleAddDeliverable}
-                                        disabled={!selectedPlatform}
+                                        disabled={!selectedPlatform || !followerCount}
                                         className="bg-[#10B981CC] hover:bg-[#10B981CC]/90 text-white"
                                     >
                                         Add Deliverable
@@ -449,7 +542,7 @@ export default function AddDealPage() {
                                                     key={index}
                                                     className="flex items-center justify-between bg-white p-3 rounded border border-gray-200"
                                                 >
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
                                                         <span className="font-medium text-gray-900">
                                                             {item.platform}
                                                         </span>
@@ -458,7 +551,10 @@ export default function AddDealPage() {
                                                             {item.contentType}
                                                         </span>
                                                         <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
-                                                            x{item.count}
+                                                            x{item.quantity}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            ({item.platformFollowers[item.platform]} followers)
                                                         </span>
                                                     </div>
                                                     <Button
@@ -487,11 +583,20 @@ export default function AddDealPage() {
                         Cancel
                     </Button>
                 </Link>
-                <Link href="/dashboard/active-deals">
-                    <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-                        Create Deal
-                    </Button>
-                </Link>
+                <Button
+                    onClick={handleSubmit}
+                    disabled={isCreating}
+                    className="bg-teal-500 hover:bg-teal-600 text-white"
+                >
+                    {isCreating ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating...
+                        </>
+                    ) : (
+                        "Create Deal"
+                    )}
+                </Button>
             </div>
         </div>
     );

@@ -48,6 +48,13 @@ export const listApi = baseApi.injectEndpoints({
             }),
             providesTags: ["list"],
         }),
+        myVerifiedListings: builder.query({
+            query: () => ({
+                url: `listing/user-personal-verify`,
+                method: "GET",
+            }),
+            providesTags: ["list"],
+        }),
 
     }),
 });
@@ -59,4 +66,5 @@ export const {
     useUpdateListMutation,
     useDeleteListMutation,
     useSearchListQuery,
+    useMyVerifiedListingsQuery,
 } = listApi;
