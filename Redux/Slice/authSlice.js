@@ -17,7 +17,6 @@ export const authSlice = createSlice({
       state.token = token;
       state.refreshToken = refreshToken;
 
-      // Also store in localStorage for persistence
       if (typeof window !== "undefined") {
         if (token) localStorage.setItem("token", token);
         if (refreshToken) localStorage.setItem("refreshToken", refreshToken);

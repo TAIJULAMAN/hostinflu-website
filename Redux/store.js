@@ -26,7 +26,7 @@ const storage =
     : createNoopStorage();
 
 const persistConfig = {
-  key: "Daily Tracking & Milestones Application", // You might want to update this key to something more relevant to Hostinflu
+  key: "Daily Tracking & Milestones Application",
   storage,
   blacklist: ["baseApi"],
 };
@@ -44,7 +44,6 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore redux-persist actions
         ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
     }).concat(baseApi.middleware),
