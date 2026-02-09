@@ -17,10 +17,26 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["user"],
     }),
+    topHosts: builder.query({
+      query: () => ({
+        url: "user/discover-host",
+        method: "GET",
+      }),
+      providesTags: ["user"],
+    }),
+    topInfluencers: builder.query({
+      query: () => ({
+        url: "user/top-influencer",
+        method: "GET",
+      }),
+      providesTags: ["user"],
+    }),
   }),
 });
 
 export const {
   useGetAllUsersQuery,
-  useDeleteUserMutation
+  useDeleteUserMutation,
+  useTopHostsQuery,
+  useTopInfluencersQuery
 } = userApi;
