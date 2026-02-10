@@ -31,6 +31,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       providesTags: ["user"],
     }),
+    getUserById: builder.query({
+      query: (id) => ({
+        url: `user/single-user/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["user"],
+    }),
+
   }),
 });
 
@@ -38,5 +46,6 @@ export const {
   useGetAllUsersQuery,
   useDeleteUserMutation,
   useTopHostsQuery,
-  useTopInfluencersQuery
+  useTopInfluencersQuery,
+  useGetUserByIdQuery
 } = userApi;

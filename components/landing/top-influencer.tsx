@@ -2,9 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Users, Video } from "lucide-react";
+import { Star, Users, Video, Facebook, Instagram, Twitter, Linkedin, Youtube } from "lucide-react";
 import { useTopInfluencersQuery } from "@/Redux/api/user/userApi";
 import { Spinner } from "@/components/ui/spinner";
+import { imgUrl } from "@/config/envConfig";
 
 export default function TopInfluencer() {
     const { data, isLoading, isError } = useTopInfluencersQuery({});
@@ -26,6 +27,31 @@ export default function TopInfluencer() {
         );
     }
 
+    const getSocialIcon = (platform: string) => {
+        switch (platform.toLowerCase()) {
+            case 'facebook':
+                return <Facebook className="w-3.5 h-3.5 text-gray-400 hover:text-[#1877F2] transition-colors" />;
+            case 'instagram':
+                return <Instagram className="w-3.5 h-3.5 text-gray-400 hover:text-[#E4405F] transition-colors" />;
+            case 'twitter':
+            case 'x':
+                return <Twitter className="w-3.5 h-3.5 text-gray-400 hover:text-[#1DA1F2] transition-colors" />;
+            case 'linkedin':
+                return <Linkedin className="w-3.5 h-3.5 text-gray-400 hover:text-[#0A66C2] transition-colors" />;
+            case 'youtube':
+                return <Youtube className="w-3.5 h-3.5 text-gray-400 hover:text-[#FF0000] transition-colors" />;
+            default:
+                return <Users className="w-3.5 h-3.5 text-gray-400" />;
+        }
+    };
+
+    const formatFollowers = (count: number) => {
+        if (!count) return '0';
+        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+        return count.toString();
+    };
+
     return (
         <section className="py-24 bg-gray-50/50">
             <div className="container mx-auto px-4">
@@ -43,21 +69,14 @@ export default function TopInfluencer() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {influencersData.slice(0, 4).map((influencer: any, index: number) => {
-                            // Map API fields to UI with placeholders for missing data
-                            const name = influencer.name || "Influencer";
-                            const role = influencer.role ? influencer.role.charAt(0).toUpperCase() + influencer.role.slice(1) : "Influencer";
-                            // Placeholder images cycling based on index
-                            const placeholderImages = [
-                                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
-                                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-                                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
-                                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80"
-                            ];
-                            const image = placeholderImages[index % placeholderImages.length];
-                            const followers = "10K"; // Placeholder
-                            const collaborations = influencer.collaborations ? influencer.collaborations.length : 0;
-                            const rating = "5.0"; // Placeholder
-                            const isFounder = false; // Placeholder
+                            const name = influencer.name || "N/A";
+                            const image = influencer?.image ? `${imgUrl}${influencer.image}` : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
+
+
+                            const collaborations = influencer.collaborationsTotal || influencer.collaborations?.length || 0;
+                            const rating = influencer.averageRating ? Number(influencer.averageRating).toFixed(1) : "0.0";
+                            const isFounder = influencer.isFounderMember;
+                            const isVerified = influencer.status === 'active';
 
                             return (
                                 <div
@@ -81,13 +100,6 @@ export default function TopInfluencer() {
                                                 </Badge>
                                             </div>
                                         )}
-
-                                        <div className="absolute bottom-3 left-3 text-white">
-                                            <div className="flex items-center gap-1 text-xs font-medium bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                                                <Video className="w-3 h-3" />
-                                                {role}
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {/* Content */}
@@ -97,9 +109,26 @@ export default function TopInfluencer() {
                                                 <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#fc826f] transition-colors">
                                                     {name}
                                                 </h3>
-                                                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                                                    <Users className="w-3.5 h-3.5 text-gray-400" />
-                                                    <span>{followers} followers</span>
+                                                <div className="flex flex-wrap items-center gap-2 mt-3">
+                                                    {influencer?.socialMediaLinks && influencer.socialMediaLinks.length > 0 ? (
+                                                        influencer.socialMediaLinks.map((link: any) => (
+                                                            <a
+                                                                key={link._id}
+                                                                href={link.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-xs font-medium text-gray-600 group/link"
+                                                            >
+                                                                {getSocialIcon(link.platform)}
+                                                                <span>{formatFollowers(link.followers)}</span>
+                                                            </a>
+                                                        ))
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-lg text-xs font-medium text-gray-600">
+                                                            <Users className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span>0</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
@@ -110,7 +139,9 @@ export default function TopInfluencer() {
 
                                         <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500 mb-5">
                                             <span>{collaborations} collaborations</span>
-                                            <span className="text-[#fc826f] font-medium text-xs bg-[#fc826f]/10 px-2 py-1 rounded-full">Verified</span>
+                                            {isVerified && (
+                                                <span className="text-[#fc826f] font-medium text-xs bg-[#fc826f]/10 px-2 py-1 rounded-full">Verified</span>
+                                            )}
                                         </div>
 
                                         {/* Action Button */}

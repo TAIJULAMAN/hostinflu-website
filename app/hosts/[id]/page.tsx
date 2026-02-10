@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeading } from "@/components/commom/pageHeading";
+import { use } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,30 +14,65 @@ import {
     Info,
     CheckCircle2,
 } from "lucide-react";
-
-const hostData = {
-    id: 1,
-    name: "Michael Adams",
-    handle: "@michael.hostinflu",
-    role: "Verified Host",
-    location: "Lisbon, Portugal",
-    rating: 4.9,
-    collaborations: 32,
-    joined: "2024",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80",
-    stats: {
-        activeListings: 4,
-        completedDeals: 12,
-        averageRating: 4.9,
-        responseRate: "98%",
-    },
-    about: "Airbnb Super Host passionate about authentic travel experiences. I collaborate with content creators to showcase beautiful stays near the coast.",
-};
-
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
+import { useGetUserByIdQuery } from "@/Redux/api/user/userApi";
+import { Spinner } from "@/components/ui/spinner";
+import { imgUrl } from "@/config/envConfig";
 
-export default function HostProfilePage({ params }: { params: { id: string } }) {
+export default function HostProfilePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const { data, isLoading, isError } = useGetUserByIdQuery(id, {
+        skip: !id,
+    });
+
+
+    const host = data?.data;
+    const name = host?.name || "N/A";
+    const userName = host?.userName ? `@${host.userName}` : "@username";
+    const location = host?.fullAddress || "No Location";
+    const image = host?.image
+        ? `${imgUrl}${host.image}`
+        : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
+    const rating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
+    const collaborations = host?.collaborationsTotal || 0;
+    const joinedYear = host?.createdAt ? new Date(host.createdAt).getFullYear() : "N/A";
+    const isVerified = host?.status === 'active';
+    const isFounder = host?.isFounderMember;
+
+    // Stats
+    const activeListings = host?.listingsTotal || 0;
+    const completedDeals = host?.completeDealsTotal || host?.dealsTotal || 0;
+    const averageRating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
+    const responseRate = host?.responseRate ? `${host.responseRate}%` : "0%";
+
+    // Show loading state if no ID or still loading
+    if (!id || isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Navbar />
+                <div className="flex-grow flex justify-center items-center">
+                    <Spinner className="w-10 h-10 text-teal-600" />
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (isError || !host) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Navbar />
+                <div className="flex-grow flex justify-center items-center">
+                    <div className="text-center text-red-500">
+                        <p>Failed to load host profile. Please try again later.</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -56,37 +91,44 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                         <CardContent className="p-6 md:p-8">
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                                 <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-white shadow-md">
-                                    <AvatarImage src={hostData.image} className="object-cover" />
-                                    <AvatarFallback>{hostData.name[0]}</AvatarFallback>
+                                    <AvatarImage src={image} className="object-cover" />
+                                    <AvatarFallback>{name[0]}</AvatarFallback>
                                 </Avatar>
 
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-center gap-3 flex-wrap">
                                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                                            {hostData.name}
+                                            {name}
                                         </h1>
-                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-normal">
-                                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                                            {hostData.role}
-                                        </Badge>
+                                        {isVerified && (
+                                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-normal">
+                                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                Verified Host
+                                            </Badge>
+                                        )}
+                                        {isFounder && (
+                                            <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none font-normal">
+                                                👑 Founder Member
+                                            </Badge>
+                                        )}
                                     </div>
-                                    <p className="text-gray-500 font-medium">{hostData.handle}</p>
+                                    <p className="text-gray-500 font-medium">{userName}</p>
 
                                     <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
                                         <div className="flex items-center gap-1.5">
                                             <MapPin className="w-4 h-4 text-red-500" />
-                                            {hostData.location}
+                                            {location}
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                                             <span className="font-semibold text-gray-900">
-                                                {hostData.rating}
+                                                {rating}
                                             </span>
-                                            <span>({hostData.collaborations} collaborations)</span>
+                                            <span>({collaborations} collaborations)</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <Calendar className="w-4 h-4 text-orange-400" />
-                                            Joined {hostData.joined}
+                                            Joined {joinedYear}
                                         </div>
                                     </div>
                                 </div>
@@ -102,7 +144,7 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                                     <Home className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {hostData.stats.activeListings}
+                                    {activeListings}
                                 </div>
                                 <div className="text-sm text-gray-500">Active Listings</div>
                             </CardContent>
@@ -114,7 +156,7 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                                     <Handshake className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {hostData.stats.completedDeals}
+                                    {completedDeals}
                                 </div>
                                 <div className="text-sm text-gray-500">Completed Deals</div>
                             </CardContent>
@@ -126,7 +168,7 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                                     <Star className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {hostData.stats.averageRating}
+                                    {averageRating}
                                 </div>
                                 <div className="text-sm text-gray-500">Average Rating</div>
                             </CardContent>
@@ -138,7 +180,7 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                                     <Mail className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {hostData.stats.responseRate}
+                                    {responseRate}
                                 </div>
                                 <div className="text-sm text-gray-500">Response Rate</div>
                             </CardContent>
@@ -150,7 +192,7 @@ export default function HostProfilePage({ params }: { params: { id: string } }) 
                         <CardContent className="p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 mb-4">About Host</h2>
                             <p className="text-gray-600 leading-relaxed mb-6">
-                                {hostData.about}
+                                {host?.aboutMe || "This host hasn't added a bio yet."}
                             </p>
 
                             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">

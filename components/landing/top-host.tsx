@@ -45,32 +45,29 @@ export default function TopHost() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {hostsData?.map((host: any, index: number) => {
-                            const hostName = host?.name || "N/A";
-                            const location = host.fullAddress || "N/A";
-                            const image = host?.profileImg ? `${imgUrl}${host.profileImg}` : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
-
-                            const rating = host.rating || "N/A";
-                            const deals = host.deals ? `${host.deals} deals` : "0 deals";
+                            const name = host?.name || "N/A";
+                            const location = host?.fullAddress || "No Location";
+                            const image = host?.image ? `${imgUrl}${host.image}` : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
+                            const rating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
+                            const deals = host?.dealCount ? `${host?.dealCount} deals` : "0 deals";
 
                             return (
                                 <div
                                     key={host._id || host.id || index}
                                     className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden"
                                 >
-                                    {/* Host Image - Full Width */}
                                     <div className="relative w-full aspect-[4/3] overflow-hidden">
                                         <Image
                                             src={image}
-                                            alt={hostName}
+                                            alt={name}
                                             fill
                                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
-
-                                        {index === 0 && (
+                                        {host.isFounderMember && (
                                             <div className="absolute top-3 right-3">
                                                 <Badge className="bg-white/90 backdrop-blur-md text-orange-600 border-none shadow-sm font-medium text-xs px-2.5 py-1">
-                                                    <span className="mr-1">👑</span> Top Host
+                                                    <span className="mr-1">👑</span> Founder Member
                                                 </Badge>
                                             </div>
                                         )}
@@ -81,7 +78,7 @@ export default function TopHost() {
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-900 group-hover:text-teal-600 transition-colors">
-                                                    {hostName}
+                                                    {name}
                                                 </h3>
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                                                     <MapPin className="w-3.5 h-3.5 text-gray-400" />
