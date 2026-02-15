@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/Redux/Slice/authSlice";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
+
+
+function NavLink({ href, children }: { href: string; children: ReactNode }) {
+  const pathname = usePathname();
+  const isActive = href === "/" ? pathname === href : pathname.startsWith(href);
+
+  return (
+    <Link
+      href={href}
+      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+          ? "bg-black text-white"
+          : "text-black/80 hover:text-black hover:bg-gray-100"
+        }`}
+    >
+      {children}
+    </Link>
+  );
+}
 
 export function Navbar() {
   const router = useRouter();
@@ -56,76 +74,31 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link
-            href="/"
-            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-          >
-            Home
-          </Link>
+        <div className="hidden md:flex items-center gap-4">
+          <NavLink href="/">Home</NavLink>
 
           {/* Show different links based on user role */}
           {isAuthenticated && user ? (
             <>
               {user.role === "host" ? (
-                <Link
-                  href="/influencers"
-                  className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-                >
-                  Influencers
-                </Link>
+                <NavLink href="/influencers">Influencers</NavLink>
               ) : (
                 <>
-                  <Link
-                    href="/hosts"
-                    className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-                  >
-                    Hosts
-                  </Link>
-                  <Link
-                    href="/deals"
-                    className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-                  >
-                    Deals
-                  </Link>
+                  <NavLink href="/hosts">Hosts</NavLink>
+                  <NavLink href="/deals">Deals</NavLink>
                 </>
               )}
             </>
           ) : (
             <>
-              <Link
-                href="/hosts"
-                className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-              >
-                Hosts
-              </Link>
-              <Link
-                href="/influencers"
-                className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-              >
-                Influencers
-              </Link>
-              <Link
-                href="/deals"
-                className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-              >
-                Deals
-              </Link>
+              <NavLink href="/hosts">Hosts</NavLink>
+              <NavLink href="/influencers">Influencers</NavLink>
+              <NavLink href="/deals">Deals</NavLink>
             </>
           )}
 
-          <Link
-            href="/#pricing"
-            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/contact-us"
-            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-          >
-            Help
-          </Link>
+          <NavLink href="/#pricing">Pricing</NavLink>
+          <NavLink href="/contact-us">Help</NavLink>
         </div>
 
         {/* Auth Section */}

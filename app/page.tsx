@@ -7,7 +7,6 @@ import { HowItWorks } from "@/components/landing/how-it-works"
 import { ValueProps } from "@/components/landing/value-props"
 import { Features } from "@/components/landing/features"
 import { Testimonials } from "@/components/landing/testimonials"
-// import { Pricing } from "@/components/landing/pricing"
 import { Footer } from "@/components/commom/footer"
 import TopHost from "@/components/landing/top-host"
 import TopInfluencer from "@/components/landing/top-influencer"
@@ -28,9 +27,6 @@ export default function Home() {
       <div id="features">
         <Features />
       </div>
-      {/* <div id="pricing">
-        <Pricing />
-      </div> */}
       <Testimonials />
       <WhyChoose />
       <Footer />

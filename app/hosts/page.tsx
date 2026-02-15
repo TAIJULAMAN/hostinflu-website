@@ -13,8 +13,6 @@ import { imgUrl } from "@/config/envConfig";
 
 export default function HostsPage() {
     const { data, isLoading, isError } = useGetAllUsersQuery({ role: "host" });
-
-    // Filter to only show hosts
     const hostsData = data?.data?.filter((user: any) => user.role === "host") || [];
 
     return (
