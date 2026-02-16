@@ -1,8 +1,8 @@
-import { baseApi } from "./baseApi";
+import { baseApi } from "../baseApi";
 
 const reviewApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getReview: builder.query({
+        getAllReview: builder.query({
             query: () => ({
                 url: "review/all-reviews",
                 method: "GET",
@@ -27,4 +27,4 @@ const reviewApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useGetReviewQuery, useGetReviewByIdQuery, useCreateReviewMutation } = reviewApi;
+export const { useGetAllReviewQuery, useGetReviewByIdQuery, useCreateReviewMutation } = reviewApi;

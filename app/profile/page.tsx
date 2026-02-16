@@ -38,12 +38,6 @@ export default function ProfilePage() {
         );
     }
 
-    const imageUrl = user?.image?.startsWith("http")
-        ? user.image
-        : user?.image
-            ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${user.image}`
-            : "";
-
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -109,7 +103,7 @@ export default function ProfilePage() {
                                         <div className="w-full pt-4 mt-4 border-t border-gray-200">
                                             <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">Social Profiles</p>
                                             <div className="flex flex-wrap gap-3 justify-center">
-                                                {user.socialMediaLinks.map((link: any) => (
+                                                {user?.socialMediaLinks?.map((link: any) => (
                                                     <a
                                                         key={link._id}
                                                         href={link.url}
@@ -226,7 +220,7 @@ export default function ProfilePage() {
                                 <CardContent className="p-6">
                                     <h3 className="font-semibold text-gray-900 mb-4 border-b pb-2">About Me</h3>
                                     <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                                        {user?.bio || "No bio available."}
+                                        {user?.aboutMe || "No bio available."}
                                     </p>
                                 </CardContent>
                             </Card>

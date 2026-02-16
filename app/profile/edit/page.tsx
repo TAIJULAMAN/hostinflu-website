@@ -116,7 +116,7 @@ export default function EditProfilePage() {
             formData.append("city", data.city);
             formData.append("zipCode", data.zipCode);
             formData.append("fullAddress", data.fullAddress);
-            formData.append("aboutMe", data.aboutMe);
+            formData.append("aboutMe", data?.aboutMe);
 
             if (imageFile) {
                 formData.append("image", imageFile);
@@ -125,12 +125,18 @@ export default function EditProfilePage() {
                 const validLinks = data.socialMediaLinks
                     .filter((link: any) => link.url)
                     .map((link: any) => ({
-                        ...link,
+                        platform: link.platform,
+                        url: link.url,
                         followers: link.followers ? Number(link.followers) : 0
                     }));
 
                 if (validLinks.length > 0) {
-                    formData.append("socialMediaLinks", JSON.stringify(validLinks));
+                    // Append each link as individual fields for backend parsers that handle array notation in FormData
+                    validLinks.forEach((link: any, index: number) => {
+                        formData.append(`socialMediaLinks[${index}][platform]`, link.platform);
+                        formData.append(`socialMediaLinks[${index}][url]`, link.url);
+                        formData.append(`socialMediaLinks[${index}][followers]`, link.followers.toString());
+                    });
                 }
             }
 

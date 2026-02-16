@@ -6,7 +6,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/Redux/Slice/authSlice";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,8 +26,8 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
     <Link
       href={href}
       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-          ? "bg-black text-white"
-          : "text-black/80 hover:text-black hover:bg-gray-100"
+        ? "bg-black text-white"
+        : "text-black/80 hover:text-black hover:bg-gray-100"
         }`}
     >
       {children}
@@ -97,7 +96,6 @@ export function Navbar() {
             </>
           )}
 
-          <NavLink href="/#pricing">Pricing</NavLink>
           <NavLink href="/contact-us">Help</NavLink>
         </div>
 

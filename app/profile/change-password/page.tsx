@@ -9,22 +9,55 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Eye, EyeOff, CheckCircle2, Badge } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+import { useChangePasswordMutation } from "@/Redux/api/auth/authApi";
+
+const changePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});
+
+type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export default function ChangePasswordPage() {
     const router = useRouter();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
-        setIsSaving(true);
-        // Simulate save operation
-        setTimeout(() => {
-            setIsSaving(false);
+    const [changePassword, { isLoading }] = useChangePasswordMutation();
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset
+    } = useForm<ChangePasswordFormValues>({
+        resolver: zodResolver(changePasswordSchema),
+    });
+
+    const onSubmit = async (data: ChangePasswordFormValues) => {
+        try {
+            await changePassword({
+                currentPassword: data.currentPassword,
+                newPassword: data.newPassword,
+                confirmPassword: data.confirmPassword
+            }).unwrap();
+
+            toast.success("Password changed successfully");
+            reset();
             router.push("/profile");
-        }, 1000);
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to change password. Please try again.");
+        }
     };
 
     return (
@@ -44,7 +77,7 @@ export default function ChangePasswordPage() {
 
                     <Card className="border-gray-200 shadow-sm">
                         <CardContent className="p-6">
-                            <div className="space-y-5">
+                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                                 {/* Current Password */}
                                 <div>
                                     <Label className="text-sm font-medium text-gray-700">Current Password</Label>
@@ -52,7 +85,8 @@ export default function ChangePasswordPage() {
                                         <Input
                                             type={showCurrentPassword ? "text" : "password"}
                                             placeholder="Enter current password"
-                                            className="pr-10"
+                                            className={`pr-10 ${errors.currentPassword ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                            {...register("currentPassword")}
                                         />
                                         <button
                                             type="button"
@@ -66,6 +100,9 @@ export default function ChangePasswordPage() {
                                             )}
                                         </button>
                                     </div>
+                                    {errors.currentPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{errors.currentPassword.message}</p>
+                                    )}
                                 </div>
 
                                 {/* New Password */}
@@ -75,7 +112,8 @@ export default function ChangePasswordPage() {
                                         <Input
                                             type={showNewPassword ? "text" : "password"}
                                             placeholder="Enter new password"
-                                            className="pr-10"
+                                            className={`pr-10 ${errors.newPassword ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                            {...register("newPassword")}
                                         />
                                         <button
                                             type="button"
@@ -89,6 +127,9 @@ export default function ChangePasswordPage() {
                                             )}
                                         </button>
                                     </div>
+                                    {errors.newPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{errors.newPassword.message}</p>
+                                    )}
                                 </div>
 
                                 {/* Confirm New Password */}
@@ -98,7 +139,8 @@ export default function ChangePasswordPage() {
                                         <Input
                                             type={showConfirmPassword ? "text" : "password"}
                                             placeholder="Confirm new password"
-                                            className="pr-10"
+                                            className={`pr-10 ${errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                            {...register("confirmPassword")}
                                         />
                                         <button
                                             type="button"
@@ -112,25 +154,33 @@ export default function ChangePasswordPage() {
                                             )}
                                         </button>
                                     </div>
+                                    {errors.confirmPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{errors.confirmPassword.message}</p>
+                                    )}
                                 </div>
 
 
                                 {/* Action Buttons */}
                                 <div className="flex gap-3 pt-4">
                                     <Link href="/profile" className="flex-1">
-                                        <Button variant="outline" className="w-full">
+                                        <Button variant="outline" className="w-full" type="button">
                                             Cancel
                                         </Button>
                                     </Link>
                                     <Button
+                                        type="submit"
                                         className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
-                                        onClick={handleSave}
-                                        disabled={isSaving}
+                                        disabled={isLoading}
                                     >
-                                        {isSaving ? "Updating..." : "Update Password"}
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Updating...
+                                            </>
+                                        ) : "Update Password"}
                                     </Button>
                                 </div>
-                            </div>
+                            </form>
                         </CardContent>
                     </Card>
                 </div>
