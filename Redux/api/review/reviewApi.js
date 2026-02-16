@@ -16,15 +16,8 @@ const reviewApi = baseApi.injectEndpoints({
             }),
             providesTags: ["review"],
         }),
-        createReview: builder.mutation({
-            query: ({ data }) => ({
-                url: "review/user-personal",
-                method: "POST",
-                body: data,
-            }),
-            invalidatesTags: ["review"],
-        }),
+
     }),
 });
 
-export const { useGetAllReviewQuery, useGetReviewByIdQuery, useCreateReviewMutation } = reviewApi;
+export const { useGetAllReviewQuery, useGetReviewByIdQuery } = reviewApi;

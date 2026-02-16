@@ -48,6 +48,13 @@ export const dealsApi = baseApi.injectEndpoints({
             }),
             providesTags: ["deals"],
         }),
+        getAllDealsByInfluencer: builder.query({
+            query: () => ({
+                url: `deal/get-all-deals`,
+                method: "GET",
+            }),
+            providesTags: ["deals"],
+        }),
 
     }),
 });
@@ -59,4 +66,5 @@ export const {
     useUpdateDealMutation,
     useDeleteDealMutation,
     useSearchListQuery,
+    useGetAllDealsByInfluencerQuery,
 } = dealsApi;

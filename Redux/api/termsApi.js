@@ -9,16 +9,8 @@ const termsAndConditionsApi = baseApi.injectEndpoints({
       }),
       providesTags: ["termsAndConditions"],
     }),
-    createTerms: builder.mutation({
-      query: ({ description }) => ({
-        url: "legalDoc/create-doc/termsAndCondition",
-        method: "PATCH",
-        body: { description },
-      }),
-      invalidatesTags: ["termsAndConditions"],
-    }),
   }),
 });
 
-export const { useGetTermsAndConditionsQuery, useCreateTermsMutation } =
+export const { useGetTermsAndConditionsQuery } =
   termsAndConditionsApi;

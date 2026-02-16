@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -54,6 +54,10 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const defaultRole = (roleParam === "host" || roleParam === "influencer") ? roleParam : "host";
+
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -62,7 +66,7 @@ export default function SignUpPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "host", // Default value to avoid controlled/uncontrolled issues
+      role: defaultRole as "host" | "influencer",
     },
   });
 

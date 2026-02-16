@@ -6,7 +6,7 @@ import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Building2 } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
 import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
@@ -83,13 +83,6 @@ export default function HostsPage() {
                                                     </Badge>
                                                 </div>
                                             )}
-
-                                            {/* <div className="absolute bottom-3 left-3 text-white">
-                                                <div className="flex items-center gap-1 text-xs font-medium bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                                                    <Building2 className="w-3 h-3" />
-                                                    Host
-                                                </div>
-                                            </div> */}
                                         </div>
 
                                         {/* Content */}

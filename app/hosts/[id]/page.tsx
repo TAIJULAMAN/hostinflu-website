@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { useGetUserByIdQuery } from "@/Redux/api/user/userApi";
+import { useGetReviewByIdQuery } from "@/Redux/api/review/reviewApi";
 import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
 
@@ -25,6 +26,17 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
     const { data, isLoading, isError } = useGetUserByIdQuery(id, {
         skip: !id,
     });
+    const { data: reviewsData } = useGetReviewByIdQuery(id, {
+        skip: !id,
+    });
+
+    const [visibleCount, setVisibleCount] = useState(10);
+    const reviews = reviewsData?.data?.reviews || [];
+    const visibleReviews = reviews.slice(0, visibleCount);
+
+    const handleLoadMore = () => {
+        setVisibleCount((prev) => prev + 10);
+    };
 
 
     const host = data?.data;
@@ -46,7 +58,7 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
     const averageRating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
     const responseRate = host?.responseRate ? `${host.responseRate}%` : "0%";
 
-    // Show loading state if no ID or still loading
+    // loading state
     if (!id || isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -207,81 +219,55 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                     {/* Reviews Section */}
                     <Card className="border-gray-200 shadow-sm">
                         <CardContent className="p-6 md:p-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-6">Reviews</h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-bold text-gray-900">Reviews ({reviews?.length || 0})</h2>
+                            </div>
 
                             <div className="space-y-6">
-                                {[
-                                    {
-                                        id: 1,
-                                        name: "Michael Chen",
-                                        avatar: "https://avatar.iran.liara.run/public/42",
-                                        rating: 5,
-                                        date: "2 weeks ago",
-                                        comment: "Sarah delivered all of expectations! Her content was stunning, delivered on time, and generated incredible engagement for our resort. Professional, creative, and a pleasure to work with. Highly recommend!",
-                                        verified: true,
-                                    },
-                                    {
-                                        id: 2,
-                                        name: "David Margrave",
-                                        avatar: "https://avatar.iran.liara.run/public/33",
-                                        rating: 5,
-                                        date: "1 month ago",
-                                        comment: "Working with Sarah was fantastic! Her professionalism and brand-dated services and created authentic content for our resort. The ROI was excellent!",
-                                        verified: true,
-                                    },
-                                    {
-                                        id: 3,
-                                        name: "James Wilson",
-                                        avatar: "https://avatar.iran.liara.run/public/28",
-                                        rating: 5,
-                                        date: "3 months ago",
-                                        comment: "EXCELLENT WORK! Sarah delivered on all of expectations! Her content was stunning, delivered on time, and generated incredible engagement for our resort. Professional, creative, and a pleasure to work with. Highly recommend!",
-                                        verified: true,
-                                    },
-                                    {
-                                        id: 4,
-                                        name: "Robert Taylor",
-                                        avatar: "https://avatar.iran.liara.run/public/19",
-                                        rating: 5,
-                                        date: "4 months ago",
-                                        comment: "Sarah was amazing to work with! Her content perfectly captured the essence of our resort and the ROI was excellent. She delivered on time and was very professional throughout the entire collaboration process. Will definitely work with her again!",
-                                        verified: true,
-                                    },
-                                ].map((review) => (
-                                    <div key={review.id} className="flex gap-4 pb-6 border-b border-gray-100 last:border-0">
+                                {visibleReviews?.map((review: any) => (
+                                    <div key={review._id} className="flex gap-4 pb-6 border-b border-gray-100 last:border-0">
                                         <Avatar className="w-12 h-12 flex-shrink-0">
-                                            <AvatarImage src={review.avatar} className="object-cover" />
-                                            <AvatarFallback>{review.name[0]}</AvatarFallback>
+                                            <AvatarImage
+                                                src={review?.reviewerId?.image ? `${imgUrl}${review.reviewerId.image}` : "https://avatar.iran.liara.run/public/42"}
+                                                className="object-cover"
+                                            />
+                                            <AvatarFallback>{review?.reviewerId?.name?.[0] || "U"}</AvatarFallback>
                                         </Avatar>
 
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900">{review.name}</h3>
-
+                                                <h3 className="font-semibold text-gray-900">{review?.reviewerId?.name || "Anonymous User"}</h3>
                                             </div>
 
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="flex items-center gap-1">
-                                                    {[...Array(review.rating)].map((_, i) => (
+                                                    {[...Array(review?.rating || 0)].map((_, i) => (
                                                         <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                                                     ))}
                                                 </div>
-                                                <span className="text-xs text-gray-500">{review.date}</span>
+                                                <span className="text-xs text-gray-500">
+                                                    {review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : ""}
+                                                </span>
                                             </div>
 
                                             <p className="text-sm text-gray-600 leading-relaxed">
-                                                {review.comment}
+                                                {review?.comment}
                                             </p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-6 text-center">
-                                <button className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-colors">
-                                    Load More Reviews
-                                </button>
-                            </div>
+                            {reviews && reviews.length > visibleCount && (
+                                <div className="mt-6 text-center">
+                                    <button
+                                        onClick={handleLoadMore}
+                                        className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-colors"
+                                    >
+                                        Load More Reviews
+                                    </button>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

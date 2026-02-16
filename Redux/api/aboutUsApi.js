@@ -9,16 +9,7 @@ const aboutUsApi = baseApi.injectEndpoints({
             }),
             providesTags: ["aboutUs"],
         }),
-
-        createAboutUs: builder.mutation({
-            query: ({ description }) => ({
-                url: "legalDoc/create-doc/aboutUs",
-                method: "PATCH",
-                body: { description },
-            }),
-            invalidatesTags: ["aboutUs"],
-        }),
     }),
 });
 
-export const { useGetAboutUsQuery, useCreateAboutUsMutation } = aboutUsApi;
+export const { useGetAboutUsQuery } = aboutUsApi;

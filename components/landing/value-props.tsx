@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export function ValueProps() {
@@ -28,7 +29,9 @@ export function ValueProps() {
                                 ),
                             )}
                         </ul>
-                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">Host a Listing</Button>
+                        <Link href="/signup?role=host">
+                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">Join as Host</Button>
+                        </Link>
                     </div>
 
                     {/* Influencers Card */}
@@ -44,7 +47,9 @@ export function ValueProps() {
                                 </li>
                             ))}
                         </ul>
-                        <Button className="bg-accent text-accent-foreground hover:bg-accent/90 px-6">Join as Influencer</Button>
+                        <Link href="/signup?role=influencer">
+                            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 px-6">Join as Influencer</Button>
+                        </Link>
                     </div>
                 </div>
             </div>
