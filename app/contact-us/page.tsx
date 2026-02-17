@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,59 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { useCreateContactMutation } from "@/Redux/api/contact/contactApi";
+import { toast } from "sonner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ContactUsPage() {
-    const [isSending, setIsSending] = useState(false);
+    const [createContact, { isLoading, isSuccess, isError, error }] = useCreateContactMutation();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phoneNumber: "",
+        subject: "",
+        message: ""
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (value: string) => {
+        setFormData(prev => ({ ...prev, subject: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSending(true);
-        // Simulate sending
-        setTimeout(() => {
-            setIsSending(false);
-            alert("Message sent successfully! We'll get back to you soon.");
-        }, 1000);
+        try {
+            const res = await createContact(formData).unwrap();
+            if (res.success) {
+                setShowSuccessModal(true);
+                setFormData({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    phoneNumber: "",
+                    subject: "",
+                    message: ""
+                });
+            }
+        } catch (err: any) {
+            console.error("Failed to send message:", err);
+            // Fallback to alert for error since we are using modal for success
+            alert(err?.data?.message || "Failed to send message. Please try again.");
+        }
     };
 
     return (
@@ -115,6 +156,9 @@ export default function ContactUsPage() {
                                                 <Label className="text-sm font-medium text-gray-700">First Name *</Label>
                                                 <Input
                                                     required
+                                                    name="firstName"
+                                                    value={formData.firstName}
+                                                    onChange={handleChange}
                                                     placeholder="John"
                                                     className="mt-1"
                                                 />
@@ -124,6 +168,9 @@ export default function ContactUsPage() {
                                                 <Label className="text-sm font-medium text-gray-700">Last Name *</Label>
                                                 <Input
                                                     required
+                                                    name="lastName"
+                                                    value={formData.lastName}
+                                                    onChange={handleChange}
                                                     placeholder="Doe"
                                                     className="mt-1"
                                                 />
@@ -135,6 +182,9 @@ export default function ContactUsPage() {
                                             <Input
                                                 type="email"
                                                 required
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
                                                 placeholder="john.doe@example.com"
                                                 className="mt-1"
                                             />
@@ -144,6 +194,9 @@ export default function ContactUsPage() {
                                             <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
                                             <Input
                                                 type="tel"
+                                                name="phoneNumber"
+                                                value={formData.phoneNumber}
+                                                onChange={handleChange}
                                                 placeholder="+1 (555) 123-4567"
                                                 className="mt-1"
                                             />
@@ -151,17 +204,17 @@ export default function ContactUsPage() {
 
                                         <div>
                                             <Label className="text-sm font-medium text-gray-700">Subject *</Label>
-                                            <Select required>
+                                            <Select required onValueChange={handleSelectChange} value={formData.subject}>
                                                 <SelectTrigger className="mt-1">
                                                     <SelectValue placeholder="Select a subject" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="general">General Inquiry</SelectItem>
-                                                    <SelectItem value="support">Technical Support</SelectItem>
-                                                    <SelectItem value="billing">Billing Question</SelectItem>
-                                                    <SelectItem value="partnership">Partnership Opportunity</SelectItem>
-                                                    <SelectItem value="feedback">Feedback</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
+                                                    <SelectItem value="General Inquiry">General Inquiry</SelectItem>
+                                                    <SelectItem value="Technical Support">Technical Support</SelectItem>
+                                                    <SelectItem value="Billing Question">Billing Question</SelectItem>
+                                                    <SelectItem value="Partnership Opportunity">Partnership Opportunity</SelectItem>
+                                                    <SelectItem value="Feedback">Feedback</SelectItem>
+                                                    <SelectItem value="Other">Other</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -170,6 +223,9 @@ export default function ContactUsPage() {
                                             <Label className="text-sm font-medium text-gray-700">Message *</Label>
                                             <Textarea
                                                 required
+                                                name="message"
+                                                value={formData.message}
+                                                onChange={handleChange}
                                                 rows={6}
                                                 placeholder="Tell us how we can help you..."
                                                 className="mt-1 resize-none"
@@ -185,9 +241,9 @@ export default function ContactUsPage() {
                                         <Button
                                             type="submit"
                                             className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 flex items-center justify-center gap-2"
-                                            disabled={isSending}
+                                            disabled={isLoading}
                                         >
-                                            {isSending ? (
+                                            {isLoading ? (
                                                 "Sending..."
                                             ) : (
                                                 <>
@@ -201,49 +257,32 @@ export default function ContactUsPage() {
                             </Card>
                         </div>
                     </div>
-
-                    {/* FAQ Section */}
-                    <div className="mt-12">
-                        <Card className="border-gray-200 shadow-sm">
-                            <CardContent className="p-8">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2">How quickly will I get a response?</h3>
-                                        <p className="text-sm text-gray-600">
-                                            We aim to respond to all inquiries within 24 hours during business days. Urgent matters are prioritized.
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2">What information should I include?</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Please provide as much detail as possible about your inquiry to help us assist you better.
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2">Can I schedule a call?</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Yes! Mention your preferred time in the message, and we'll coordinate a call with you.
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2">Do you offer live chat support?</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Live chat is available for logged-in users. Visit your dashboard to access it.
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
                 </div>
             </div>
 
             <Footer />
+
+            <AlertDialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+                <AlertDialogContent className="bg-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-teal-600 text-xl flex items-center gap-2">
+                            <Send className="w-6 h-6" />
+                            Message Sent Successfully!
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600 mt-2">
+                            Thank you for contacting us. We have received your message and will get back to you shortly, usually within 24 hours.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-4">
+                        <AlertDialogAction
+                            onClick={() => setShowSuccessModal(false)}
+                            className="bg-teal-600 hover:bg-teal-700 text-white"
+                        >
+                            Okay, Got it
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

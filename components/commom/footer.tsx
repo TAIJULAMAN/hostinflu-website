@@ -19,11 +19,11 @@ export function Footer() {
                                     How It Works
                                 </Link>
                             </li>
-                            <li>
+                            {/* <li>
                                 <Link href="/#pricing" className="hover:opacity-100">
                                     Pricing
                                 </Link>
-                            </li>
+                            </li> */}
                             <li>
                                 <Link href="/#features" className="hover:opacity-100">
                                     Features
@@ -39,13 +39,13 @@ export function Footer() {
                                     About Us
                                 </Link>
                             </li>
-                            <li>
+                            {/* <li>
                                 <Link href="#" className="hover:opacity-100">
                                     Careers
                                 </Link>
-                            </li>
+                            </li> */}
                             <li>
-                                <Link href="#" className="hover:opacity-100">
+                                <Link href="/faq" className="hover:opacity-100">
                                     FAQ
                                 </Link>
                             </li>
@@ -74,7 +74,7 @@ export function Footer() {
                     </div>
                 </div>
                 <div className="border-t border-background/20 pt-8 text-center text-sm opacity-75">
-                    <p>&copy; 2025 Hostinflu. All rights reserved.</p>
+                    <p>&copy; 2026 Hostinflu. All rights reserved.</p>
                 </div>
             </div>
         </footer>
