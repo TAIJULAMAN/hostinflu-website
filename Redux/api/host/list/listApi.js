@@ -55,6 +55,13 @@ export const listApi = baseApi.injectEndpoints({
             }),
             providesTags: ["list"],
         }),
+        getAllListingsByHostId: builder.query({
+            query: (id) => ({
+                url: `listing/user-total-listings/${id}`,
+                method: "GET",
+            }),
+            providesTags: ["list"],
+        }),
 
     }),
 });
@@ -67,4 +74,5 @@ export const {
     useDeleteListMutation,
     useSearchListQuery,
     useMyVerifiedListingsQuery,
+    useGetAllListingsByHostIdQuery,
 } = listApi;

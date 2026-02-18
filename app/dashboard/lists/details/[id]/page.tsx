@@ -16,7 +16,7 @@ export default function ListingDetailsPage({ params }: { params: Promise<{ id: s
     const { data: listingData, isLoading } = useGetSingleListingQuery(id);
     const listing = listingData?.data?.listing?.[0] || (storedList?._id === id ? storedList : null);
 
-    if (isLoading && !listing) {
+    if (isLoading) {
         return (
             <div className="container mx-auto pb-20">
                 <div className="text-center py-20">
@@ -47,7 +47,7 @@ export default function ListingDetailsPage({ params }: { params: Promise<{ id: s
 
             <div className="max-w-5xl mx-auto space-y-6">
                 {/* Status Badge */}
-                <div className="flex justify-between items-center">
+                {/* <div className="flex justify-between items-center">
                     <span
                         className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${listing?.status?.toLowerCase() === "verified"
                             ? "text-green-800 bg-green-100"
@@ -56,12 +56,7 @@ export default function ListingDetailsPage({ params }: { params: Promise<{ id: s
                     >
                         {listing?.status || "Unknown"}
                     </span>
-                    {/* <Link href={`/dashboard/lists/edit/${listing._id}`}>
-                        <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-                            Edit Listing
-                        </Button>
-                    </Link> */}
-                </div>
+                </div> */}
 
                 {/* Main Image */}
                 <div className="rounded-xl overflow-hidden border border-gray-200">
@@ -179,17 +174,13 @@ export default function ListingDetailsPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-4">
+                {/* <div className="flex justify-end gap-4">
                     <Link href="/dashboard/lists">
                         <Button variant="outline">Back to Listings</Button>
                     </Link>
-                    {/* <Link href={`/dashboard/lists/edit/${listing._id}`}>
-                        <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-                            Edit Listing
-                        </Button>
-                    </Link> */}
-                </div>
+                </div> */}
             </div>
         </div>
     );
 }
+

@@ -1,305 +1,178 @@
 "use client";
 
-import { useState } from "react";
-
+import React from "react";
+import { PageHeading } from "@/components/commom/pageHeading";
 import Link from "next/link";
-import {
-    Calendar,
-    MapPin,
-    DollarSign,
-    CheckCircle2,
-    ExternalLink,
-    Camera,
-    Music,
-    Hash,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, Home, CheckCircle2, User, Mail } from "lucide-react";
+import { use } from "react";
+import { useGetSingleListingQuery } from "@/Redux/api/host/list/listApi";
+import { imgUrl } from "@/config/envConfig";
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import Loader from "@/components/commom/loader";
 
-export default function DealDetailsPage({ params }: { params: { id: string } }) {
-    const [isSending, setIsSending] = useState(false);
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
+export default function DealDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const { data: listingData, isLoading } = useGetSingleListingQuery(id);
+    const listing = listingData?.data?.listing?.[0] || listingData?.data;
 
-    const handleApply = () => {
-        setIsSending(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSending(false);
-            setShowSuccessModal(true);
-        }, 1500);
-    };
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Navbar />
+                <Loader />
+                <Footer />
+            </div>
+        );
+    }
+
+    if (!listing) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Navbar />
+                <div className="flex-grow container mx-auto pb-20 flex items-center justify-center">
+                    <div className="text-center py-20">
+                        <h2 className="text-2xl font-semibold text-gray-800">Listing not found</h2>
+                        <Link href="/deals">
+                            <Button className="mt-4">Back to Deals</Button>
+                        </Link>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
-
-            <div className="flex-grow pt-24 pb-12">
-                {/* Header */}
-                <div className="container mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900">Deal Overview</h1>
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                            Available
-                        </Badge>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="container mx-auto px-4 space-y-6">
-                    {/* Deal Title & Status */}
-                    <div className="space-y-3">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            Weekend Stay Deal – Villa Serenity
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">
-                                Created on 15 Nov 2025
-                            </span>
-                            <span className="text-gray-300">•</span>
-                            <span className="text-sm text-gray-500">Deal ID: #DEAL1234</span>
-                        </div>
+            <div className="flex-grow pt-24 pb-20">
+                <div className="container mx-auto">
+                    <div className="mb-10">
+                        <PageHeading title={listing?.title} />
                     </div>
 
-                    {/* Campaign Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Left Column */}
-                        <div className="space-y-6">
-                            {/* Listing Information */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                <h3 className="font-semibold text-gray-900 mb-3">
-                                    Listing Information
-                                </h3>
-                                <div className="aspect-video bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                                    <img
-                                        src="/list.png"
-                                        alt="Luxury Beachfront Apartment"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <h4 className="font-semibold text-gray-900">
-                                    Luxury Beachfront Apartment
-                                </h4>
-                                <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>Manhattan, New York</span>
-                                </div>
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Lorem Ipsum is simply dummy text of the printing and typesetting
-                                    industry. Lorem Ipsum has been the industry's standard dummy
-                                    text ever since the 1500s, when an unknown printer took a galley
-                                    of type and scrambled it to make a type specimen book.
-                                </p>
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {["WiFi", "Pool", "Kitchen", "Parking"].map((amenity, i) => (
-                                        <span
-                                            key={i}
-                                            className="px-2 py-1 bg-gray-50 text-xs text-gray-600 rounded-full"
-                                        >
-                                            {amenity}
-                                        </span>
-                                    ))}
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    className="w-full mt-3 justify-center gap-2"
-                                >
-                                    View Listing on Airbnb
-                                    <ExternalLink className="w-4 h-4" />
-                                </Button>
-                            </div>
-
-                            {/* Campaign Requirements */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                <h3 className="font-semibold text-gray-900 mb-3">
-                                    Campaign Requirements
-                                </h3>
-                                <div className="space-y-6">
-                                    {[
-                                        {
-                                            icon: <DollarSign className="w-5 h-5" />,
-                                            title: "Budget",
-                                            description: "$2,500.00 for collaboration",
-                                        },
-                                        {
-                                            icon: <Calendar className="w-5 h-5" />,
-                                            title: "Duration",
-                                            description: "2-3 days stay required",
-                                        },
-                                        {
-                                            icon: <CheckCircle2 className="w-5 h-5" />,
-                                            title: "Deliverables",
-                                            description: "1 Post + 2 Stories on Instagram",
-                                        },
-                                    ].map((item, index) => (
-                                        <div key={index} className="flex gap-4">
-                                            <div className="flex-shrink-0 w-[50px] h-[50px] rounded bg-teal-100 text-teal-600 flex items-center justify-center">
-                                                {item.icon}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-medium text-gray-900">
-                                                    {item.title}
-                                                </h4>
-                                                <p className="text-sm text-gray-500 mt-1">
-                                                    {item.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                    <div className="max-w-5xl mx-auto space-y-6">
+                        <div className="rounded-xl overflow-hidden border border-gray-200 relative aspect-video">
+                            <img
+                                src={listing?.images?.[0] ? `${imgUrl}${listing.images[0]}` : "/list.png"}
+                                alt={listing?.title || "Listing Image"}
+                                className="w-full h-full object-cover"
+                            />
                         </div>
 
-                        {/* Right Column */}
-                        <div className="space-y-5">
-                            {/* Required Content */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Required Content
-                                    </h3>
-                                    <Badge
-                                        variant="outline"
-                                        className="bg-blue-100 text-blue-700"
-                                    >
-                                        3 Items
-                                    </Badge>
+                        {/* Property Information */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-lg space-y-6">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Property Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="flex items-start gap-3">
+                                        <Home className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Property Type</p>
+                                            <p className="text-base font-medium text-gray-900">
+                                                {listing?.propertyType || "N/A"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <MapPin className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Location</p>
+                                            <p className="text-base font-medium text-gray-900">
+                                                {listing?.location || "N/A"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <Calendar className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Date Added</p>
+                                            <p className="text-base font-medium text-gray-900">
+                                                {listing?.createdAt ? new Date(listing.createdAt).toLocaleDateString() : "N/A"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <CheckCircle2 className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Status</p>
+                                            <p className="text-base font-medium text-gray-900 capitalize">
+                                                {listing?.status || "N/A"}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-3">
-                                    {[
-                                        {
-                                            emoji: <Camera className="w-6 h-6" />,
-                                            title: "1 Instagram Reel showcasing the property exterior",
-                                            platform: "Instagram",
-                                        },
-                                        {
-                                            emoji: <Music className="w-6 h-6" />,
-                                            title: "2 Instagram Stories highlighting guest experience",
-                                            platform: "Instagram",
-                                        },
-                                        {
-                                            emoji: <Hash className="w-6 h-6" />,
-                                            title: "Tag @HostProfile and use #HostInfoCollab",
-                                            platform: "Social Media",
-                                        },
-                                    ].map((item, i) => (
-                                        <div
-                                            key={i}
-                                            className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200"
-                                        >
-                                            <div className="w-12 h-12 rounded flex items-center justify-center text-sm font-bold bg-gray-100 border border-gray-300 text-gray-700">
-                                                {item.emoji}
+                            <div className="border-t border-gray-200 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                                    Description
+                                </h3>
+                                <p className="text-gray-700 leading-relaxed">{listing?.description || "No description available."}</p>
+                            </div>
+
+                            {/* Amenities Section */}
+                            <div className="border-t border-gray-200 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Amenities
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {listing?.amenities && Object.entries(listing.amenities).map(([key, value]) => (
+                                        value && (
+                                            <div key={key} className="flex items-center gap-2 text-gray-700">
+                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                                <span className="text-sm capitalize">
+                                                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                                                </span>
                                             </div>
-                                            <div className="">
-                                                <p className="font-medium text-gray-900">{item.title}</p>
-                                                <Badge className="mt-1 text-xs bg-blue-100 text-blue-700">
-                                                    {item.platform}
-                                                </Badge>
-                                            </div>
+                                        )
+                                    ))}
+                                    {listing?.customAmenities?.map((amenity: string, index: number) => (
+                                        <div key={`custom-${index}`} className="flex items-center gap-2 text-gray-700">
+                                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                            <span className="text-sm">{amenity}</span>
                                         </div>
                                     ))}
+                                    {(!listing?.amenities || Object.values(listing.amenities).every(v => !v)) && (!listing?.customAmenities || listing.customAmenities.length === 0) && (
+                                        <p className="text-gray-500 text-sm italic">No amenities listed.</p>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Host Information */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                <h3 className="font-semibold text-gray-900 mb-4">Host Information</h3>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold">
-                                        MC
+                            <div className="border-t border-gray-200 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Host Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-start gap-3">
+                                        <User className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Host Name</p>
+                                            <p className="text-base font-medium text-gray-900">
+                                                {listing?.userId?.name || "N/A"}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">Michael Chen</p>
-                                        <p className="text-sm text-gray-500">Verified Host</p>
+                                    <div className="flex items-start gap-3">
+                                        <Mail className="h-5 w-5 text-teal-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Email</p>
+                                            <p className="text-base font-medium text-gray-900">
+                                                {listing?.userId?.email || "N/A"}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Rating</span>
-                                        <span className="font-medium text-gray-900">4.9 ⭐</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Completed Deals</span>
-                                        <span className="font-medium text-gray-900">28</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Response Rate</span>
-                                        <span className="font-medium text-gray-900">98%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Payment Details */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-semibold text-gray-900">Payment Details</h3>
-                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                                        Available
-                                    </Badge>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="text-sm text-gray-500">Total Amount</p>
-                                    <p className="text-3xl font-bold text-gray-900">$250</p>
-                                </div>
-
-                                <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                    <div className="w-5 h-5 rounded-full bg-teal-100 flex-shrink-0 flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
-                                    </div>
-                                    <p className="text-sm text-gray-600">
-                                        Payment will be released after approved the deal.
-                                    </p>
-                                </div>
-
-                                <div className="pt-2 flex gap-3">
-                                    <Link href={`/deals/${params.id}/negotiate`} className="flex-1">
-                                        <Button variant="outline" className="w-full">
-                                            Negotiate
-                                        </Button>
-                                    </Link>
-                                    <Button
-                                        onClick={handleApply}
-                                        disabled={isSending}
-                                        className="flex-1 bg-[#fc826f] text-white py-3 rounded-lg font-semibold"
-                                    >
-                                        {isSending ? "Sending..." : "Apply for Collaboration"}
-                                    </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Success Modal */}
-            {showSuccessModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 relative animate-in fade-in zoom-in duration-300 text-center">
-                        {/* Success Icon */}
-                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent Successfully!</h2>
-                        <p className="text-gray-600 mb-6">
-                            Your collaboration request has been sent to the Host.
-                        </p>
-
-                        <Button
-                            onClick={() => setShowSuccessModal(false)}
-                            className="w-full bg-white border border-gray-300 text-gray-900 font-semibold h-11 rounded-xl"
-                        >
-                            Close
-                        </Button>
-                    </div>
-                </div>
-            )}
-
             <Footer />
         </div>
     );

@@ -11,21 +11,25 @@ import {
     Home,
     Handshake,
     Mail,
-    Info,
     CheckCircle2,
 } from "lucide-react";
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { useGetUserByIdQuery } from "@/Redux/api/user/userApi";
 import { useGetReviewByIdQuery } from "@/Redux/api/review/reviewApi";
-import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
+import { useGetAllListingsByHostIdQuery } from "@/Redux/api/host/list/listApi";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import Loader from "@/components/commom/loader";
 
 export default function HostProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const { data, isLoading, isError } = useGetUserByIdQuery(id, {
+    const { data, isLoading } = useGetUserByIdQuery(id, {
         skip: !id,
     });
+    console.log(data, "data of single host");
     const { data: reviewsData } = useGetReviewByIdQuery(id, {
         skip: !id,
     });
@@ -62,25 +66,7 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
     if (!id || isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Navbar />
-                <div className="flex-grow flex justify-center items-center">
-                    <Spinner className="w-10 h-10 text-teal-600" />
-                </div>
-                <Footer />
-            </div>
-        );
-    }
-
-    if (isError || !host) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Navbar />
-                <div className="flex-grow flex justify-center items-center">
-                    <div className="text-center text-red-500">
-                        <p>Failed to load host profile. Please try again later.</p>
-                    </div>
-                </div>
-                <Footer />
+                <Loader />
             </div>
         );
     }
@@ -89,15 +75,8 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
 
-            <div className="flex-grow pb-12">
-                {/* Header / Breadcrumb area could go here if needed */}
-                <div className="bg-white border-b border-gray-200">
-                    <div className="container mx-auto px-4 py-4">
-                        {/* Simple back navigation or breadcrumb could be added */}
-                    </div>
-                </div>
-
-                <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+            <div className="flex-grow py-10 md:py-15">
+                <div className="container mx-auto py-10 space-y-5">
                     {/* Header Card */}
                     <Card className="border-gray-200 shadow-sm overflow-hidden">
                         <CardContent className="p-6 md:p-8">
@@ -158,7 +137,7 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
                                     {activeListings}
                                 </div>
-                                <div className="text-sm text-gray-500">Active Listings</div>
+                                <div className="text-sm text-gray-500">Total Listings</div>
                             </CardContent>
                         </Card>
 
@@ -170,7 +149,7 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
                                     {completedDeals}
                                 </div>
-                                <div className="text-sm text-gray-500">Completed Deals</div>
+                                <div className="text-sm text-gray-500">Completed Collaborations</div>
                             </CardContent>
                         </Card>
 
@@ -207,14 +186,16 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                                 {host?.aboutMe || "This host hasn't added a bio yet."}
                             </p>
 
-                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
+                            {/* <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
                                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                                 <p className="text-sm text-blue-700 font-medium">
                                     Communication available after deal approval
                                 </p>
-                            </div>
+                            </div> */}
                         </CardContent>
                     </Card>
+
+                    <ListingSection id={id} />
 
                     {/* Reviews Section */}
                     <Card className="border-gray-200 shadow-sm">
@@ -276,3 +257,117 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
         </div>
     );
 }
+
+const ListingSection = ({ id }: { id: string }) => {
+    const { data: listingsData } = useGetAllListingsByHostIdQuery(id);
+    const listings = listingsData?.data || [];
+    console.log(listings, "listings from single user");
+
+    if (listings.length === 0) return null;
+
+    return (
+        <div className="space-y-5">
+            <h2 className="text-2xl font-bold text-gray-900">Listings ({listings.length})</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {listings.map((listing: any) => (
+                    <Card key={listing._id} className="group border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full bg-white rounded-xl">
+                        {/* Property Image & Badges */}
+                        <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
+                            <Image
+                                src={listing?.images?.[0] ? `${imgUrl}${listing.images[0]}` : "/list.png"}
+                                alt={listing?.title || "Property"}
+                                fill
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+
+                            {/* Overlay Gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+
+                            {/* Top Badges */}
+                            <div className="absolute top-3 left-3 flex gap-2">
+                                {listing?.status === 'verified' && (
+                                    <span className="bg-white/90 backdrop-blur-sm text-teal-600 text-xs font-bold px-2 py-1 rounded-sm shadow-sm flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Verified
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Bottom Info on Image */}
+                            <div className="absolute bottom-3 left-3 right-3 text-white">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Avatar className="w-6 h-6 border border-white/50 shadow-sm">
+                                        <AvatarImage src={listing?.userId?.image ? `${imgUrl}${listing.userId.image}` : "https://avatar.iran.liara.run/public/42"} />
+                                        <AvatarFallback>{listing?.userId?.name?.[0] || "H"}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-xs font-medium text-white/90 truncate">{listing?.userId?.name || "Host Name"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <CardContent className="p-5 flex flex-col flex-grow">
+                            {/* Location & Type */}
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                                <span className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {listing?.location || "Unknown Location"}
+                                </span>
+                                <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600">{listing?.propertyType || "Property"}</span>
+                            </div>
+
+                            {/* Property Name */}
+                            <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-1 group-hover:text-teal-600 transition-colors">
+                                {listing?.title || "Property Name"}
+                            </h3>
+
+                            {/* Description / Summary */}
+                            <div className="bg-teal-50 rounded-lg p-3 mb-4 space-y-2">
+                                <p className="text-sm text-teal-800 line-clamp-2">
+                                    {listing?.description || "No description available."}
+                                </p>
+                            </div>
+
+                            {/* Amenities Tags */}
+                            <div className="mt-auto">
+                                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Amenities</div>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {(() => {
+                                        const amenities = [
+                                            ...Object.entries(listing?.amenities || {}).filter(([_, v]) => v).map(([k]) => k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1').trim()),
+                                            ...(listing?.customAmenities || [])
+                                        ].slice(0, 3);
+
+                                        if (amenities.length === 0) {
+                                            return <span className="text-xs text-gray-400 italic">No specific amenities listed</span>;
+                                        }
+
+                                        return amenities.map((amenity, idx) => (
+                                            <span key={idx} className="text-xs px-2 py-1 rounded border bg-gray-100 text-gray-700 border-gray-200 font-medium">
+                                                {amenity}
+                                            </span>
+                                        ));
+                                    })()}
+                                    {(Object.keys(listing?.amenities || {}).filter(k => listing.amenities[k]).length + (listing?.customAmenities?.length || 0)) > 3 && (
+                                        <span className="text-xs text-gray-500 self-center">...</span>
+                                    )}
+                                </div>
+                                <div className="flex gap-3 pt-4 border-t border-gray-100">
+                                    <Link href={`/deals/${listing._id}`} className="flex-1">
+                                        <Button className="w-full border-2 border-gray-300 text-gray-700 bg-white font-medium h-10">
+                                            Details
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium h-10 shadow-sm shadow-teal-200"
+                                    >
+                                        Collaboration
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+};
