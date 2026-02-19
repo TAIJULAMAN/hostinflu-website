@@ -41,6 +41,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     const [customAmenities, setCustomAmenities] = useState<string[]>([]);
     const [newAmenityInput, setNewAmenityInput] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +80,13 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         }
     }, [listing]);
 
+    // Cleanup object URLs to avoid memory leaks
+    useEffect(() => {
+        return () => {
+            previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [previewUrls]);
+
     const handleAmenityToggle = (amenityId: string) => {
         setSelectedAmenities((prev) =>
             prev.includes(amenityId)
@@ -94,14 +102,28 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         }
     };
 
-    const handleRemoveImage = (index: number) => {
+    const handleRemoveUploadedImage = (index: number) => {
         setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleRemoveSelectedFile = (index: number) => {
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+        setPreviewUrls((prev) => {
+            const newPreviews = [...prev];
+            URL.revokeObjectURL(newPreviews[index]); // Cleanup
+            return newPreviews.filter((_, i) => i !== index);
+        });
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files) {
-            setSelectedFiles((prev) => [...prev, ...Array.from(files)]);
+            const newFiles = Array.from(files);
+            setSelectedFiles((prev) => [...prev, ...newFiles]);
+
+            // Generate preview URLs
+            const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+            setPreviewUrls((prev) => [...prev, ...newPreviews]);
         }
     };
 
@@ -125,6 +147,17 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         });
         formData.append("amenities", JSON.stringify(amenitiesObj));
         formData.append("customAmenities", JSON.stringify(customAmenities));
+
+        // Append existing images (if the backend expects them to be preserved, it might look for a specific field or just not touch them if not sent, 
+        // but often we need to send the list of retained images).
+        // Since I don't know the exact backend contract, I'll assume we might need to send them. 
+        // If the backend wipes images on update, we'd need to know.
+        // For now, I'll send 'uploadedImages' as well if it helps, or rely on the backend logic.
+        // A common pattern is sending `images` as files and `existingImages` as strings.
+        uploadedImages.forEach((imageUrl) => {
+            formData.append("existingImages", imageUrl);
+        });
+
         selectedFiles.forEach((file) => {
             formData.append("images", file);
         });
@@ -279,26 +312,54 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                     </div>
                                 </div>
 
-                                {/* Uploaded Images Preview */}
-                                {uploadedImages.length > 0 && (
-                                    <div className="grid grid-cols-3 gap-4">
+                                {/* Images Preview Grid */}
+                                {(uploadedImages.length > 0 || previewUrls.length > 0) && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                                        {/* Existing Images */}
                                         {uploadedImages.map((image, index) => (
                                             <div
-                                                key={index}
-                                                className="relative group rounded-lg overflow-hidden border border-gray-200"
+                                                key={`existing-${index}`}
+                                                className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square"
                                             >
                                                 <img
                                                     src={`${imgUrl}${image}`}
-                                                    alt={`Property ${index + 1}`}
-                                                    className="w-full h-24 object-cover"
+                                                    alt={`Existing ${index + 1}`}
+                                                    className="w-full h-full object-cover"
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleRemoveImage(index)}
-                                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => handleRemoveUploadedImage(index)}
+                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </button>
+                                                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    Existing
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* New Selected Images */}
+                                        {previewUrls.map((url, index) => (
+                                            <div
+                                                key={`new-${index}`}
+                                                className="relative group rounded-lg overflow-hidden border border-teal-200 aspect-square"
+                                            >
+                                                <img
+                                                    src={url}
+                                                    alt={`New ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSelectedFile(index)}
+                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                                <div className="absolute bottom-0 left-0 right-0 bg-teal-500/80 text-white text-xs py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    New
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
