@@ -85,13 +85,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Link>
-              <Link
+              {/* <Link
                 href="/dashboard/active-deals"
                 className={getLinkClassName("/dashboard/active-deals")}
               >
                 <Handshake className="h-5 w-5" />
                 Deals
-              </Link>
+              </Link> */}
               <Link
                 href="/dashboard/lists"
                 className={getLinkClassName("/dashboard/lists")}
@@ -114,25 +114,11 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 Transactions
               </Link>
               <Link
-                href="/dashboard/redeem-requests"
-                className={getLinkClassName("/dashboard/redeem-requests")}
-              >
-                <BadgeDollarSign className="h-5 w-5" />
-                Redeem Request
-              </Link>
-              <Link
                 href="/dashboard/chat"
                 className={getLinkClassName("/dashboard/chat")}
               >
                 <MessageCircle className="h-5 w-5" />
                 Message
-              </Link>
-              <Link
-                href="/dashboard/onboarding"
-                className={getLinkClassName("/dashboard/onboarding")}
-              >
-                <Settings className="h-5 w-5" />
-                Onboarding
               </Link>
             </>
           ) : (

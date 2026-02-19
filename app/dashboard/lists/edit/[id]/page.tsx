@@ -21,6 +21,7 @@ import { useGetSingleListingQuery, useUpdateListMutation } from "@/Redux/api/hos
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { imgUrl } from "@/config/envConfig";
+import Loader from "@/components/commom/loader";
 
 export default function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -55,7 +56,6 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         { id: "hotTub", label: "Hot Tub" },
     ];
 
-    // Pre-populate
     useEffect(() => {
         if (listing) {
             setTitle(listing.title || "");
@@ -119,17 +119,12 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         formData.append("propertyType", propertyType);
         formData.append("addAirbnbLink", addAirbnbLink);
 
-        // Convert amenities array to object
         const amenitiesObj: any = {};
         amenitiesList.forEach((amenity) => {
             amenitiesObj[amenity.id] = selectedAmenities.includes(amenity.id);
         });
         formData.append("amenities", JSON.stringify(amenitiesObj));
-
-        // Add custom amenities
         formData.append("customAmenities", JSON.stringify(customAmenities));
-
-        // Add new image files
         selectedFiles.forEach((file) => {
             formData.append("images", file);
         });
@@ -147,11 +142,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
 
     if (isLoading && !listing) {
         return (
-            <div className="container mx-auto pb-20">
-                <div className="text-center py-20">
-                    <h2 className="text-2xl font-semibold text-gray-800">Loading...</h2>
-                </div>
-            </div>
+            <Loader />
         );
     }
 

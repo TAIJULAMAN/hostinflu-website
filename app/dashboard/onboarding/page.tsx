@@ -18,7 +18,6 @@ export default function OnboardingPage() {
 
     const handleConnect = () => {
         setIsConnecting(true);
-        // Simulate API call
         setTimeout(() => {
             setIsConnecting(false);
             setIsConnected(true);

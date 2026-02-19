@@ -1,10 +1,10 @@
 "use client";
 
-// components/dashboard/collaboration-growth-chart.tsx
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useUserCollaborationGrowthQuery } from '@/Redux/api/dashboard/dashboardApi';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -13,21 +13,21 @@ const months = [
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-const yearlyCollaborations = {
-    2022: [5, 8, 12, 10, 15, 18, 20, 22, 18, 15, 20, 25],
-    2023: [10, 15, 18, 22, 25, 28, 30, 35, 32, 28, 35, 40]
-};
-
 export default function CollaborationGrowthChart() {
-    const [selectedYear, setSelectedYear] = useState(2023);
-    const years = [2022, 2023];
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+    const { data: collaborationData, isLoading } = useUserCollaborationGrowthQuery({ year: selectedYear });
+
+    const monthlyCounts = collaborationData?.data?.monthlyData?.map((item: any) => item.count) || new Array(12).fill(0);
 
     const data = {
         labels: months,
         datasets: [
             {
                 label: 'New Collaborations',
-                data: yearlyCollaborations[selectedYear as keyof typeof yearlyCollaborations],
+                data: monthlyCounts,
                 borderColor: 'rgb(99, 102, 241)',
                 backgroundColor: 'rgba(99, 102, 241, 0.5)',
                 tension: 0.3
@@ -52,6 +52,9 @@ export default function CollaborationGrowthChart() {
                 beginAtZero: true,
                 grid: {
                     color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    stepSize: 1
                 }
             }
         }
@@ -79,7 +82,13 @@ export default function CollaborationGrowthChart() {
                 </div>
             </div>
             <div className="h-80">
-                <Line data={data} options={options} />
+                {isLoading ? (
+                    <div className="flex h-full items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                    </div>
+                ) : (
+                    <Line data={data} options={options} />
+                )}
             </div>
         </div>
     );

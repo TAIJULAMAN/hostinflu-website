@@ -3,6 +3,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useUserListingGrowthQuery } from '@/Redux/api/dashboard/dashboardApi';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -11,21 +12,21 @@ const months = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-const yearlyListings = {
-  2022: [85, 90, 88, 95, 100, 105, 110, 115, 120, 125, 130, 135],
-  2023: [120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175]
-};
-
 export default function ListingGrowthChart() {
-  const [selectedYear, setSelectedYear] = useState(2023);
-  const years = [2022, 2023];
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+  const { data: listingData, isLoading } = useUserListingGrowthQuery({ year: selectedYear });
+
+  const monthlyCounts = listingData?.data?.monthlyData?.map((item: any) => item.count) || new Array(12).fill(0);
 
   const data = {
     labels: months,
     datasets: [
       {
         label: 'Active Listings',
-        data: yearlyListings[selectedYear as keyof typeof yearlyListings],
+        data: monthlyCounts,
         backgroundColor: 'rgba(16, 185, 129, 0.8)',
         borderRadius: 4
       }
@@ -58,7 +59,7 @@ export default function ListingGrowthChart() {
   };
 
   return (
-    <div className="bg-white p-5 rounded-lg shadow">
+    <div className="bg-white p-5 rounded-lg shadow h-full">
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-lg font-semibold text-gray-800">Listing Growth</h3>
         <div className="relative">
@@ -79,7 +80,13 @@ export default function ListingGrowthChart() {
         </div>
       </div>
       <div className="h-80">
-        <Bar data={data} options={options} />
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        ) : (
+          <Bar data={data} options={options} />
+        )}
       </div>
     </div>
   );

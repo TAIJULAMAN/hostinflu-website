@@ -2,17 +2,33 @@ import { baseApi } from "../baseApi";
 
 export const dashboardApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllDashboard: builder.query({
+    getAllTotalOfDashboard: builder.query({
       query: (params) => ({
-        url: "dashboard",
+        url: "dashboard/user-dashboard",
         method: "GET",
         params,
       }),
       providesTags: ["dashboard"],
     }),
-    userGrowth: builder.query({
+    userCollaborationGrowth: builder.query({
       query: ({ year } = {}) => ({
-        url: "user/user-growth",
+        url: "collaboration/user-personal-collaborations-growth",
+        method: "GET",
+        params: { year },
+      }),
+      providesTags: ["dashboard"],
+    }),
+    userListingGrowth: builder.query({
+      query: ({ year } = {}) => ({
+        url: "listing/personal-listings-growth",
+        method: "GET",
+        params: { year },
+      }),
+      providesTags: ["dashboard"],
+    }),
+    userSpendingGrowth: builder.query({
+      query: ({ year } = {}) => ({
+        url: "payment/user-spending-growth",
         method: "GET",
         params: { year },
       }),
@@ -21,5 +37,4 @@ export const dashboardApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetAllDashboardQuery, useUserGrowthQuery } =
-  dashboardApi;
+export const { useGetAllTotalOfDashboardQuery, useUserCollaborationGrowthQuery, useUserListingGrowthQuery, useUserSpendingGrowthQuery } = dashboardApi;

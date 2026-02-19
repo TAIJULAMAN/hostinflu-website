@@ -24,7 +24,7 @@ export default function Lists() {
     const dispatch = useDispatch();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
-    const [status, setStatus] = useState("pending");
+    const [status, setStatus] = useState("");
     const limit = 10;
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
