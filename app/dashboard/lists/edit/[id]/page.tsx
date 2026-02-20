@@ -102,6 +102,10 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         }
     };
 
+    const handleRemoveCustomAmenity = (index: number) => {
+        setCustomAmenities((prev) => prev.filter((_, i) => i !== index));
+    };
+
     const handleRemoveUploadedImage = (index: number) => {
         setUploadedImages((prev) => prev.filter((_, i) => i !== index));
     };
@@ -146,14 +150,13 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             amenitiesObj[amenity.id] = selectedAmenities.includes(amenity.id);
         });
         formData.append("amenities", JSON.stringify(amenitiesObj));
-        formData.append("customAmenities", JSON.stringify(customAmenities));
 
-        // Append existing images (if the backend expects them to be preserved, it might look for a specific field or just not touch them if not sent, 
-        // but often we need to send the list of retained images).
-        // Since I don't know the exact backend contract, I'll assume we might need to send them. 
-        // If the backend wipes images on update, we'd need to know.
-        // For now, I'll send 'uploadedImages' as well if it helps, or rely on the backend logic.
-        // A common pattern is sending `images` as files and `existingImages` as strings.
+        // Append custom amenities individually
+        customAmenities.forEach((amenity) => {
+            formData.append("customAmenities", amenity);
+        });
+
+        // Append existing images individually
         uploadedImages.forEach((imageUrl) => {
             formData.append("existingImages", imageUrl);
         });
@@ -162,13 +165,20 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             formData.append("images", file);
         });
 
+        // Debug: Log FormData entries
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ', ' + pair[1]);
+        }
+
         try {
             const res = await updateList({ id, data: formData }).unwrap();
+            console.log("Update response:", res);
             if (res?.message) {
                 toast.success(res.message || "Listing updated successfully!");
                 router.push("/dashboard/lists");
             }
         } catch (error: any) {
+            console.error("Update error:", error);
             toast.error(error?.data?.message || "Failed to update listing");
         }
     };
@@ -416,12 +426,19 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                             {customAmenities.length > 0 && (
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {customAmenities.map((amenity, index) => (
-                                        <span
+                                        <div
                                             key={index}
-                                            className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm"
+                                            className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm flex items-center gap-1 group"
                                         >
-                                            {amenity}
-                                        </span>
+                                            <span>{amenity}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveCustomAmenity(index)}
+                                                className="hover:text-teal-900 focus:outline-none"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
                             )}
