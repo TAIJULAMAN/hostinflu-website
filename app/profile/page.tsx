@@ -79,9 +79,11 @@ export default function ProfilePage() {
                                     <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 capitalize mb-4">
                                         {user?.role || "N/A"}
                                     </Badge>
-                                    <Badge variant="outline" className="mb-4 border-teal-200 text-teal-700">
-                                        Night Credits: {user?.nightCredits || 0}
-                                    </Badge>
+                                    {user?.role === "influencer" && (
+                                        <Badge variant="outline" className="mb-4 border-teal-200 text-teal-700">
+                                            Night Credits: {user?.nightCredits || 0}
+                                        </Badge>
+                                    )}
 
                                     <div className="w-full pt-4 border-t border-gray-200 space-y-3">
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -198,13 +200,20 @@ export default function ProfilePage() {
                                     <CardContent className="p-6">
                                         <h3 className="font-semibold text-gray-900 mb-4 border-b pb-2">Airbnb Connection</h3>
 
-                                        {user?.airbnbAccountLinked ? (
+                                        {user?.airbnbAccount ? (
                                             <div className="space-y-3">
                                                 <div className="flex items-center gap-2 bg-green-50 p-3 rounded-lg">
                                                     <CheckCircle2 className="w-5 h-5 text-green-500" />
                                                     <div>
                                                         <p className="text-sm font-semibold text-green-700">Connected</p>
-                                                        <p className="text-xs text-green-600">Your Airbnb account is successfully linked.</p>
+                                                        <a
+                                                            href={user?.airbnbAccount?.startsWith('http') ? user.airbnbAccount : `https://${user?.airbnbAccount}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-green-600 pt-2 hover:underline block truncate max-w-[200px]"
+                                                        >
+                                                            {user?.airbnbAccount}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>

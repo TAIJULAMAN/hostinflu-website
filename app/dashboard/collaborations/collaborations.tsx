@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
     Table,
     TableBody,
@@ -9,7 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Eye, Star, Check } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,20 +18,44 @@ import {
     PaginationEllipsis,
     PaginationItem,
 } from "@/components/ui/pagination";
-import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { lists } from "./data";
+import { useGetAllMyCollaborationsQuery, useDeleteCollaborationMutation } from "@/Redux/api/collaboration/collaborationApi";
+import Loader from "@/components/commom/loader";
+import { toast } from "sonner";
 
+const ITEMS_PER_PAGE = 10;
 
-const ITEMS_PER_PAGE = 8;
+interface Collaboration {
+    _id: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+    canAccept?: boolean;
+    compensation?: {
+        paymentAmount?: string | number;
+        numberOfNights?: number;
+    };
+    selectInfluencerOrHost?: {
+        name: string;
+        profileImage?: string;
+    };
+}
 
 export default function Collaborations() {
-    const [currentPage, setCurrentPage] = React.useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
 
-    // Calculate pagination
-    const totalPages = Math.ceil(lists.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentLists = lists.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const { data: collaborationsData, isLoading, isError, error } = useGetAllMyCollaborationsQuery({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        searchTerm: searchTerm || undefined,
+        status: statusFilter || undefined,
+    });
+
+    const collaborations: Collaboration[] = collaborationsData?.data?.collaborations || [];
+    const totalPages = collaborationsData?.totalPages || 0;
 
     // Generate page numbers to show
     const getPageNumbers = () => {
@@ -78,14 +102,18 @@ export default function Collaborations() {
 
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
-            case "active":
+            case "accepted":
                 return "text-green-800 bg-green-100";
             case "pending":
                 return "text-gray-800 bg-gray-200";
-            case "requesting":
+            case "negotiating":
                 return "text-blue-800 bg-blue-100";
             case "completed":
                 return "text-yellow-800 bg-yellow-100";
+            case "rejected":
+                return "text-red-800 bg-red-100";
+            case "ongoing":
+                return "text-purple-800 bg-purple-100";
             default:
                 return "text-gray-800 bg-gray-100";
         }
@@ -101,6 +129,8 @@ export default function Collaborations() {
         isLoading: false,
     });
 
+    const [deleteCollaboration] = useDeleteCollaborationMutation();
+
     const handleDeleteClick = (listId: string) => {
         setDeleteModal({
             isOpen: true,
@@ -115,7 +145,8 @@ export default function Collaborations() {
         setDeleteModal((prev) => ({ ...prev, isLoading: true }));
 
         try {
-            // Close the modal
+            await deleteCollaboration(deleteModal.listId).unwrap();
+            toast.success("Collaboration deleted successfully");
             setDeleteModal({
                 isOpen: false,
                 listId: null,
@@ -123,6 +154,7 @@ export default function Collaborations() {
             });
         } catch (error) {
             console.error("Failed to delete property", error);
+            toast.error((error as any)?.data?.message || "Failed to delete collaboration");
             setDeleteModal((prev) => ({ ...prev, isLoading: false }));
         }
     };
@@ -154,126 +186,131 @@ export default function Collaborations() {
                                 type="text"
                                 placeholder="Search collaborations..."
                                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm h-full"
+                                value={searchTerm}
                                 onChange={(e) => {
-
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
                                 }}
                             />
                         </div>
 
                         <select
                             className="block w-full sm:w-36 px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-700 h-full"
+                            value={statusFilter}
                             onChange={(e) => {
-
+                                setStatusFilter(e.target.value);
+                                setCurrentPage(1);
                             }}
                         >
                             <option value="">All Status</option>
-                            <option value="active">Active</option>
                             <option value="pending">Pending</option>
-                            <option value="requesting">Requesting</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="negotiating">Negotiating</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="ongoing">Ongoing</option>
                             <option value="completed">Completed</option>
                         </select>
 
-                        <Link
-                            href="/dashboard/collaborations/add-new"
-                            className="px-4 py-2 bg-[#10B981CC] text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2 whitespace-nowrap h-full"
-                        >
-                            <span>+</span>
-                            <span>Add New</span>
-                        </Link>
                     </div>
                 </div>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-                        <TableHead className="rounded-tl-lg">INFLUENCER</TableHead>
-                        <TableHead>DEAL NAME</TableHead>
-                        <TableHead>DURATION</TableHead>
-                        <TableHead>PAYMENT</TableHead>
-                        <TableHead>STATUS</TableHead>
-                        <TableHead>Night Star</TableHead>
-                        <TableHead className="rounded-tr-lg">ACTION</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {currentLists.map((item) => (
-                        <TableRow key={item.id} className="hover:bg-gray-50">
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <img
-                                        src={item.influencerImage}
-                                        alt={item.influencer}
-                                        className="w-10 h-10 rounded-lg object-cover"
-                                    />
-                                    <span className="font-medium text-gray-900">{item.influencer}</span>
-                                </div>
-                            </TableCell>
-
-                            <TableCell className="text-gray-600">
-                                {item.dealName}
-                            </TableCell>
-                            <TableCell className="text-gray-600 text-sm">
-                                {item.startDate} - {item.endDate}
-                            </TableCell>
-                            <TableCell className="text-gray-900 font-medium">
-                                {item.payment}
-                            </TableCell>
-                            <TableCell>
-                                <span
-                                    className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                                        item.status
-                                    )}`}
-                                >
-                                    {item.status}
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-gray-700 font-medium">{item.nightStar}</span>
-                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex space-x-2">
-                                    <Link
-                                        href={`/dashboard/collaborations/details/${item.id}`}
-                                        className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                        title="View Details"
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                    </Link>
-                                    <Link
-                                        href={`/dashboard/collaborations/edit/${item.id}`}
-                                        className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                        title="Edit"
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </Link>
-                                    <button
-                                        onClick={() => handleDeleteClick(item.id)}
-                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                        title="Delete"
-                                        disabled={deleteModal.isLoading}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                    {item.status === "requesting" && (
-                                        <button
-                                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                                            title="Accept"
-                                            onClick={() => console.log("Accept clicked for", item.id)}
-                                        >
-                                            <Check className="h-4 w-4" />
-                                        </button>
-                                    )}
-
-                                </div>
-                            </TableCell>
+            <div className="relative overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
+                            <TableHead className="rounded-tl-lg bg-[#10B981CC]">INFLUENCER</TableHead>
+                            <TableHead className="bg-[#10B981CC]">NAME</TableHead>
+                            <TableHead className="bg-[#10B981CC]">DURATION</TableHead>
+                            <TableHead className="bg-[#10B981CC]">PAYMENT</TableHead>
+                            <TableHead className="bg-[#10B981CC]">STATUS</TableHead>
+                            <TableHead className="bg-[#10B981CC]">Nights Stay</TableHead>
+                            <TableHead className="rounded-tr-lg bg-[#10B981CC]">ACTION</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center">
+                                    <div className="flex items-center justify-center">
+                                        <Loader />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : isError ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center text-red-500">
+                                    Error loading collaborations: {(error as any)?.data?.message || "Something went wrong"}
+                                </TableCell>
+                            </TableRow>
+                        ) : collaborations.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center text-gray-500">
+                                    No collaborations found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            collaborations.map((item) => (
+                                <TableRow key={item._id} className="hover:bg-gray-50">
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-medium text-gray-900">
+                                                {item.selectInfluencerOrHost?.name || "N/A"}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+
+                                    <TableCell className="text-gray-600">
+                                        {item.description}
+                                    </TableCell>
+                                    <TableCell className="text-gray-600 text-sm">
+                                        {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell className="text-gray-900 font-medium">
+                                        ${item.compensation?.paymentAmount || 0}
+                                    </TableCell>
+                                    <TableCell>
+                                        <span
+                                            className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                                                item.status
+                                            )}`}
+                                        >
+                                            {item.status}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-gray-700 font-medium">
+                                                {item.compensation?.numberOfNights || 0}
+                                            </span>
+                                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex space-x-2">
+                                            <Link
+                                                href={`/dashboard/collaborations/details/${item._id}`}
+                                                className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                                                title="View Details"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDeleteClick(item._id)}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                title="Delete"
+                                                disabled={deleteModal.isLoading}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (

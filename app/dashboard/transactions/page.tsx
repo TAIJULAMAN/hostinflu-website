@@ -21,95 +21,28 @@ import {
 } from "@/components/ui/pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DeleteModal } from "@/components/ui/delete-modal";
+import { useGetTransactionQuery } from "@/Redux/api/transaction/transactionApi";
 
-// Mock transaction data
-const transactions = [
-    {
-        id: "TXN001",
-        influencerName: "Sarah Johnson",
-        influencerAvatar: "https://avatar.iran.liara.run/public/1",
-        collaborationTitle: "Weekend Stay Deal – Villa Serenity",
-        amount: 250,
-        date: "2024-11-15",
-        status: "completed",
-        paymentMethod: "Stripe",
-    },
-    {
-        id: "TXN002",
-        influencerName: "Mike Chen",
-        influencerAvatar: "https://avatar.iran.liara.run/public/2",
-        collaborationTitle: "Beachfront Villa Promotion",
-        amount: 300,
-        date: "2024-11-12",
-        status: "completed",
-        paymentMethod: "PayPal",
-    },
-    {
-        id: "TXN003",
-        influencerName: "Emma Rodriguez",
-        influencerAvatar: "https://avatar.iran.liara.run/public/3",
-        collaborationTitle: "Mountain Retreat Experience",
-        amount: 180,
-        date: "2024-11-10",
-        status: "pending",
-        paymentMethod: "Stripe",
-    },
-    {
-        id: "TXN004",
-        influencerName: "David Park",
-        influencerAvatar: "https://avatar.iran.liara.run/public/4",
-        collaborationTitle: "Downtown Luxury Apartment",
-        amount: 220,
-        date: "2024-11-08",
-        status: "completed",
-        paymentMethod: "Stripe",
-    },
-    {
-        id: "TXN005",
-        influencerName: "Lisa Thompson",
-        influencerAvatar: "https://avatar.iran.liara.run/public/5",
-        collaborationTitle: "Penthouse Suite Showcase",
-        amount: 400,
-        date: "2024-11-05",
-        status: "completed",
-        paymentMethod: "Bank Transfer",
-    },
-    {
-        id: "TXN006",
-        influencerName: "Alex Johnson",
-        influencerAvatar: "https://avatar.iran.liara.run/public/6",
-        collaborationTitle: "Garden Cottage Stay",
-        amount: 160,
-        date: "2024-11-03",
-        status: "failed",
-        paymentMethod: "Stripe",
-    },
-    {
-        id: "TXN007",
-        influencerName: "Rachel Kim",
-        influencerAvatar: "https://avatar.iran.liara.run/public/7",
-        collaborationTitle: "Modern Studio Tour",
-        amount: 120,
-        date: "2024-11-01",
-        status: "completed",
-        paymentMethod: "PayPal",
-    },
-    {
-        id: "TXN008",
-        influencerName: "James Wilson",
-        influencerAvatar: "https://avatar.iran.liara.run/public/8",
-        collaborationTitle: "Scandinavian House Feature",
-        amount: 280,
-        date: "2024-10-28",
-        status: "completed",
-        paymentMethod: "Stripe",
-    },
-];
+// Mock transaction data removed as it is replaced by real API data.
 
 const ITEMS_PER_PAGE = 8;
 
 export default function TransactionsPage() {
     const [currentPage, setCurrentPage] = React.useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+
+    const { data: transactionResponse, isLoading } = useGetTransactionQuery({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        searchTerm,
+        status: statusFilter,
+    });
+
+    const transactionsData = transactionResponse?.data?.transactions || [];
+    const pagination = transactionResponse?.data?.pagination || { totalPages: 1 };
+    const totalPages = pagination.totalPages;
+
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
         transactionId: string | null;
@@ -147,11 +80,6 @@ export default function TransactionsPage() {
             setDeleteModal((prev) => ({ ...prev, isLoading: false }));
         }
     };
-
-    // Calculate pagination
-    const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentTransactions = transactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     // Generate page numbers to show
     const getPageNumbers = () => {
@@ -197,12 +125,14 @@ export default function TransactionsPage() {
     };
 
     const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case "completed":
+        switch (status.toUpperCase()) {
+            case "SUCCESS":
+            case "COMPLETED":
                 return "text-green-800 bg-green-100";
-            case "pending":
+            case "PENDING":
+            case "IN_PROGRESS":
                 return "text-amber-800 bg-amber-100";
-            case "failed":
+            case "FAILED":
                 return "text-red-800 bg-red-100";
             default:
                 return "text-gray-800 bg-gray-100";
@@ -243,22 +173,27 @@ export default function TransactionsPage() {
                                 type="text"
                                 placeholder="Search transactions..."
                                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm h-full"
+                                value={searchTerm}
                                 onChange={(e) => {
-                                    // Add search functionality here
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
                                 }}
                             />
                         </div>
 
                         <select
                             className="block w-full sm:w-36 px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-700 h-full"
+                            value={statusFilter}
                             onChange={(e) => {
-                                // Add filter functionality here
+                                setStatusFilter(e.target.value);
+                                setCurrentPage(1);
                             }}
                         >
                             <option value="">All Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
-                            <option value="failed">Failed</option>
+                            <option value="SUCCESS">Success</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="FAILED">Failed</option>
                         </select>
                     </div>
                 </div>
@@ -273,67 +208,65 @@ export default function TransactionsPage() {
                         <TableHead>AMOUNT</TableHead>
                         <TableHead>DATE</TableHead>
                         <TableHead>STATUS</TableHead>
-                        <TableHead className="rounded-tr-lg">ACTION</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {currentTransactions.map((transaction) => (
-                        <TableRow key={transaction.id} className="hover:bg-gray-50">
-                            <TableCell className="font-medium text-gray-900">
-                                {transaction.id}
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarImage src={transaction.influencerAvatar} />
-                                        <AvatarFallback>{transaction.influencerName[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-medium text-gray-900">{transaction.influencerName}</span>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-gray-600 max-w-xs truncate">
-                                {transaction.collaborationTitle}
-                            </TableCell>
-                            <TableCell className="font-semibold text-gray-900">
-                                ${transaction.amount.toFixed(2)}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                                {new Date(transaction.date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                })}
-                            </TableCell>
-
-                            <TableCell>
-                                <span
-                                    className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                                        transaction.status
-                                    )}`}
-                                >
-                                    {transaction.status}
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex space-x-2">
-                                    <button
-                                        className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                        title="View Details"
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteClick(transaction.id)}
-                                        className="p-1.5 text-red-600 rounded-full hover:bg-red-50"
-                                        title="Delete Transaction"
-                                        disabled={deleteModal.isLoading}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
+                    {isLoading ? (
+                        <TableRow>
+                            <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                                Loading transactions...
                             </TableCell>
                         </TableRow>
-                    ))}
+                    ) : transactionsData.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                                No transactions found.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        transactionsData.map((transaction: any) => (
+                            <TableRow key={transaction._id} className="hover:bg-gray-50">
+                                <TableCell className="font-medium text-gray-900">
+                                    {(transaction._id as string).slice(-8).toUpperCase()}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="w-8 h-8">
+                                            <AvatarFallback className="bg-teal-100 text-teal-700">
+                                                {transaction.description?.[0] || "T"}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <span className="font-medium text-gray-900">
+                                            {transaction.provider || "Stripe"}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-gray-600 max-w-xs truncate">
+                                    {transaction.description}
+                                </TableCell>
+                                <TableCell className="font-semibold text-gray-900">
+                                    ${(transaction.amount / 100).toFixed(2)}
+                                </TableCell>
+                                <TableCell className="text-gray-600">
+                                    {new Date(transaction.createdAt).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    })}
+                                </TableCell>
+
+                                <TableCell>
+                                    <span
+                                        className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                                            transaction.status
+                                        )}`}
+                                    >
+                                        {(transaction.status as string).replace('_', ' ')}
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
                 </TableBody>
             </Table>
 

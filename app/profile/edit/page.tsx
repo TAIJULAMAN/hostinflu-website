@@ -24,6 +24,7 @@ import { useMyProfileQuery, useUpdateProfileMutation } from "@/Redux/api/user/us
 import { toast } from "sonner";
 import { useForm, useFieldArray } from "react-hook-form";
 import { imgUrl } from "@/config/envConfig";
+import Loader from "@/components/commom/loader";
 
 export default function EditProfilePage() {
     const router = useRouter();
@@ -48,6 +49,7 @@ export default function EditProfilePage() {
             zipCode: "",
             fullAddress: "",
             aboutMe: "",
+            airbnbAccount: "",
             socialMediaLinks: [{ platform: "facebook", url: "", followers: "" }],
         },
     });
@@ -72,6 +74,7 @@ export default function EditProfilePage() {
                 zipCode: user.zipCode || "",
                 fullAddress: user.fullAddress || "",
                 aboutMe: user.aboutMe || "",
+                airbnbAccount: user?.airbnbAccount || "",
                 socialMediaLinks: user.socialMediaLinks?.length
                     ? user.socialMediaLinks.map((link: any) => ({
                         platform: link.platform,
@@ -117,6 +120,7 @@ export default function EditProfilePage() {
             formData.append("zipCode", data.zipCode);
             formData.append("fullAddress", data.fullAddress);
             formData.append("aboutMe", data?.aboutMe);
+            formData.append("airbnbAccount", data.airbnbAccount);
 
             if (imageFile) {
                 formData.append("image", imageFile);
@@ -131,7 +135,6 @@ export default function EditProfilePage() {
                     }));
 
                 if (validLinks.length > 0) {
-                    // Append each link as individual fields for backend parsers that handle array notation in FormData
                     validLinks.forEach((link: any, index: number) => {
                         formData.append(`socialMediaLinks[${index}][platform]`, link.platform);
                         formData.append(`socialMediaLinks[${index}][url]`, link.url);
@@ -153,9 +156,7 @@ export default function EditProfilePage() {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col">
                 <Navbar />
-                <div className="flex-grow flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
-                </div>
+                <Loader />
                 <Footer />
             </div>
         );
@@ -324,6 +325,15 @@ export default function EditProfilePage() {
                                                 <Label className="text-sm font-medium text-gray-700">Full Address</Label>
                                                 <Input
                                                     {...register("fullAddress")}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+
+                                            <div className="md:col-span-2">
+                                                <Label className="text-sm font-medium text-gray-700">Airbnb Account Linked</Label>
+                                                <Input
+                                                    {...register("airbnbAccount")}
+                                                    placeholder="https://www.airbnb.com/users/profile/..."
                                                     className="mt-1"
                                                 />
                                             </div>

@@ -8,7 +8,7 @@ const profileApi = baseApi.injectEndpoints({
         method: "PUT",
         body: formData,
       }),
-      invalidatesTags: ["profile"],
+      invalidatesTags: ["profile", "user", "auth"],
     }),
     changeAdminPassword: builder.mutation({
       query: ({ currentPassword, newPassword, confirmPassword }) => ({
@@ -18,10 +18,15 @@ const profileApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["profile"],
     }),
+    getProfile: builder.query({
+      query: () => "auth/my-profile",
+      providesTags: ["profile"],
+    }),
   }),
 });
 
 export const {
   useUpdateProfileMutation,
   useChangeAdminPasswordMutation,
+  useGetProfileQuery,
 } = profileApi;

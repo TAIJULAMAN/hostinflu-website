@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
+import { useGetProfileQuery } from "@/Redux/api/profileApi";
+import { imgUrl } from "@/config/envConfig";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
@@ -39,9 +42,14 @@ export function Navbar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user, token } = useSelector((state: any) => state.auth);
-  console.log("user", user);
-  console.log("token", token);
   const isAuthenticated = !!token;
+
+  const { data: profileResponse } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const profile = profileResponse?.data;
+  const displayUser = profile || user;
+
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -104,11 +112,21 @@ export function Navbar() {
           {isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-black">{user.name}</span>
-                    <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
-                      {user.role}
+                <button className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none">
+                  <Avatar className="h-9 w-9 border border-gray-200">
+                    <AvatarImage
+                      src={displayUser?.image ? (displayUser.image.startsWith('http') ? displayUser.image : `${imgUrl}${displayUser.image}`) : ""}
+                      alt={displayUser?.name || "User"}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold">
+                      {displayUser?.name?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-semibold text-black leading-none">{displayUser?.name}</span>
+                    <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold mt-1 uppercase tracking-wider">
+                      {displayUser?.role}
                     </span>
                   </div>
                 </button>
@@ -116,8 +134,8 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-sm font-semibold">{displayUser?.name}</p>
+                    <p className="text-xs text-muted-foreground">{displayUser?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
