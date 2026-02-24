@@ -10,6 +10,7 @@ import { Star, MapPin } from "lucide-react";
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
 import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
+import Loader from "@/components/commom/loader";
 
 export default function HostsPage() {
     const { data, isLoading, isError } = useGetAllUsersQuery({ role: "host" });
@@ -32,7 +33,7 @@ export default function HostsPage() {
 
                     {isLoading ? (
                         <div className="flex justify-center items-center min-h-[400px]">
-                            <Spinner className="w-10 h-10 text-teal-600" />
+                            <Loader />
                         </div>
                     ) : isError ? (
                         <div className="text-center text-red-500">
@@ -45,13 +46,6 @@ export default function HostsPage() {
                             {hostsData.map((host: any) => {
                                 const _id = host?._id;
                                 const name = host?.name || "N/A";
-                                const email = host?.email || "N/A";
-                                const userName = host?.userName || "N/A";
-                                const listingsTotal = host?.listingsTotal || 0;
-                                const joinedDate = host?.createdAt || "N/A";
-                                const responseRate = host?.responseRate || "N/A";
-                                const listings = host?.listings || [];
-                                const dealsListings = host?.deals || 0;
                                 const location = host?.fullAddress || "No Location";
                                 const image = host?.image
                                     ? `${imgUrl}${host?.image}`

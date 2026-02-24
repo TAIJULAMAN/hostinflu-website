@@ -11,7 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Eye, Download, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Pagination,
@@ -19,13 +19,11 @@ import {
     PaginationEllipsis,
     PaginationItem,
 } from "@/components/ui/pagination";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { useGetTransactionQuery } from "@/Redux/api/transaction/transactionApi";
 
-// Mock transaction data removed as it is replaced by real API data.
-
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 export default function TransactionsPage() {
     const [currentPage, setCurrentPage] = React.useState(1);
@@ -38,6 +36,8 @@ export default function TransactionsPage() {
         searchTerm,
         status: statusFilter,
     });
+
+    console.log(transactionResponse, "transactionResponse");
 
     const transactionsData = transactionResponse?.data?.transactions || [];
     const pagination = transactionResponse?.data?.pagination || { totalPages: 1 };
@@ -53,13 +53,7 @@ export default function TransactionsPage() {
         isLoading: false,
     });
 
-    const handleDeleteClick = (transactionId: string) => {
-        setDeleteModal({
-            isOpen: true,
-            transactionId,
-            isLoading: false,
-        });
-    };
+
 
     const handleDeleteConfirm = async () => {
         if (!deleteModal.transactionId) return;
@@ -80,8 +74,6 @@ export default function TransactionsPage() {
             setDeleteModal((prev) => ({ ...prev, isLoading: false }));
         }
     };
-
-    // Generate page numbers to show
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 3;
@@ -123,7 +115,6 @@ export default function TransactionsPage() {
 
         return pages;
     };
-
     const getStatusColor = (status: string) => {
         switch (status.toUpperCase()) {
             case "SUCCESS":
@@ -137,11 +128,6 @@ export default function TransactionsPage() {
             default:
                 return "text-gray-800 bg-gray-100";
         }
-    };
-
-    const handleDownloadReceipt = (transactionId: string) => {
-        // Simulate receipt download
-        console.log(`Downloading receipt for ${transactionId}`);
     };
 
     return (
@@ -230,19 +216,11 @@ export default function TransactionsPage() {
                                     {(transaction._id as string).slice(-8).toUpperCase()}
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="w-8 h-8">
-                                            <AvatarFallback className="bg-teal-100 text-teal-700">
-                                                {transaction.description?.[0] || "T"}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span className="font-medium text-gray-900">
-                                            {transaction.provider || "Stripe"}
-                                        </span>
-                                    </div>
+                                    {transaction?.selectInfluencerOrHost?.name}
                                 </TableCell>
+
                                 <TableCell className="text-gray-600 max-w-xs truncate">
-                                    {transaction.description}
+                                    {transaction?.title?.title}
                                 </TableCell>
                                 <TableCell className="font-semibold text-gray-900">
                                     ${(transaction.amount / 100).toFixed(2)}
