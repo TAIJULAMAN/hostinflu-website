@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Navbar } from "@/components/commom/navbar";
-import { Footer } from "@/components/commom/footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
@@ -15,291 +10,690 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Minus, Plus, ArrowRight, Building2, Calendar, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Minus, Plus, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { PageHeading } from "@/components/commom/pageHeading";
 import Link from "next/link";
-import { useAuth } from "@/contexts/auth-context";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Navbar } from "@/components/commom/navbar";
+import { Footer } from "@/components/commom/footer";
+import { useMyVerifiedListingsQuery } from "@/Redux/api/host/list/listApi";
+import { Loader2 } from "lucide-react";
+import { useCollaborationRequestMutation } from "@/Redux/api/collaboration/collaborationApi";
+import { toast } from "sonner";
+import { useParams, useRouter } from "next/navigation";
 
-export default function CollaborationRequestPage() {
-    const params = useParams();
+export default function CollaborationEditPage() {
+    const { id } = useParams();
+    const [contentCount, setContentCount] = useState(2);
+    const [nightCount, setNightCount] = useState(3);
+    const [guestCount, setGuestCount] = useState(2);
+    const [compensationTypes, setCompensationTypes] = useState<string[]>(["nights", "payment", "guests"]);
+    const [checkInDate, setCheckInDate] = useState<Date>(new Date("2024-06-15"));
+    const [checkOutDate, setCheckOutDate] = useState<Date>(new Date("2024-06-18"));
+    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+    const [contentType, setContentType] = useState<string>("post");
+    const [addedDeliverables, setAddedDeliverables] = useState<
+        { platform: string; contentType: string; count: number }[]
+    >([
+        { platform: "Instagram", contentType: "reel", count: 2 },
+        { platform: "TikTok", contentType: "video", count: 1 },
+    ]);
+    const [open, setOpen] = useState(false);
+    const [selectedListing, setSelectedListing] = useState<string>("");
+    const [description, setDescription] = useState("");
+    const [checkInTime, setCheckInTime] = useState("10:00 PM");
+    const [checkOutTime, setCheckOutTime] = useState("10:00 PM");
+    const [paymentAmount, setPaymentAmount] = useState("500");
+
     const router = useRouter();
-    const { user } = useAuth();
-    const [isSending, setIsSending] = useState(false);
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [nights, setNights] = useState(2);
-    const [includeFreeStay, setIncludeFreeStay] = useState(true);
-    const [offerAmount, setOfferAmount] = useState("");
 
-    // Mock influencer data - in real app, fetch based on params.id
-    const influencer = {
-        id: params.id,
-        name: "Sarah Davis",
-        role: "Influencer",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
+    const [collaborationRequest, { isLoading: isSubmitting }] = useCollaborationRequestMutation();
+    const { data: listingsData, isLoading: listingsLoading } = useMyVerifiedListingsQuery(undefined);
+    const listings = listingsData?.data?.listings || [];
+    console.log("listings of my verified listings", listings);
+
+    const handleAddDeliverable = () => {
+        if (selectedPlatform && contentType && contentCount > 0) {
+            setAddedDeliverables((prev) => [
+                ...prev,
+                {
+                    platform: selectedPlatform,
+                    contentType,
+                    count: contentCount,
+                },
+            ]);
+            setSelectedPlatform(null);
+            setContentType("post");
+            setContentCount(1);
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSending(true);
-        // Simulate sending request
-        setTimeout(() => {
-            setIsSending(false);
-            setShowSuccessModal(true);
-        }, 1500);
+    const handleRemoveDeliverable = (index: number) => {
+        setAddedDeliverables((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSave = async () => {
+        if (!selectedListing) {
+            toast.error("Please select a listing");
+            return;
+        }
+
+        if (addedDeliverables.length === 0) {
+            toast.error("Please add at least one deliverable");
+            return;
+        }
+
+        const combineDateTime = (date: Date, timeStr: string) => {
+            const [time, modifier] = timeStr.split(" ");
+            let [hours, minutes] = time.split(":").map(Number);
+            if (modifier === "PM" && hours < 12) hours += 12;
+            if (modifier === "AM" && hours === 12) hours = 0;
+
+            const newDate = new Date(date);
+            newDate.setHours(hours, minutes, 0, 0);
+            return newDate.toISOString();
+        };
+
+        const payload = {
+            title: selectedListing,
+            description,
+            inTimeAndDate: combineDateTime(checkInDate, checkInTime),
+            outTimeAndDate: combineDateTime(checkOutDate, checkOutTime),
+            compensation: {
+                nightCredits: compensationTypes.includes("nights"),
+                numberOfNights: nightCount,
+                directPayment: compensationTypes.includes("payment"),
+                paymentAmount: paymentAmount,
+            },
+            guestCount: compensationTypes.includes("guests") ? guestCount : 0,
+            deliverables: addedDeliverables.map(d => ({
+                platform: d.platform,
+                contentType: d.contentType.charAt(0).toUpperCase() + d.contentType.slice(1),
+                quantity: d.count
+            })),
+            startDate: checkInDate.toISOString(),
+            endDate: checkOutDate.toISOString(),
+        };
+
+        try {
+            const res = await collaborationRequest({ id: id, body: payload }).unwrap();
+            console.log("res", res);
+            setOpen(true);
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to send collaboration request");
+        }
     };
 
     return (
-        <div className="min-h-screen  flex flex-col">
+        <div>
             <Navbar />
+            <div className="container mx-auto py-20">
+                <div className="mb-10 text-center">
+                    <PageHeading title="Edit Collaboration" />
+                </div>
 
-            <div className="flex-grow pt-24 pb-12">
-                <div className="max-w-5xl mx-auto px-4 py-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <Link href={`/influencers/${params.id}`}>
-                            <div className="mb-5 flex justify-start items-center gap-2">
-                                <ArrowLeft className="w-5 h-5" />
-                                <p className="text-lg font-bold text-gray-900">Send Collaboration</p>
-                            </div>
-                        </Link>
-
-                    </div>
-
-                    {/* User Cards */}
-                    <Card className="mb-8 border-gray-200 shadow-lg">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
-                                            <AvatarImage src="https://avatar.iran.liara.run/public/42" />
-                                            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white font-semibold">
-                                                {user?.fullName?.charAt(0).toUpperCase() || "M"}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                <div className="space-y-5">
+                    <div className="flex flex-col md:flex-row gap-5">
+                        <section className="w-full space-y-5">
+                            {/* Deal Basics */}
+                            <section>
+                                <Label className="text-lg font-semibold text-gray-900 mb-5">
+                                    Collaboration Basics
+                                </Label>
+                                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-lg">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Collaboration Title
+                                            </label>
+                                            <Select value={selectedListing} onValueChange={setSelectedListing}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={listingsLoading ? "Loading listings..." : "Select listing"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {listingsLoading ? (
+                                                        <div className="flex items-center justify-center p-4">
+                                                            <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
+                                                        </div>
+                                                    ) : listings.length > 0 ? (
+                                                        listings.map((listing: any) => (
+                                                            <SelectItem key={listing._id} value={listing._id}>
+                                                                {listing.title}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <SelectItem value="none" disabled>No verified listings found</SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        {/* <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Airbnb Link
+                                            </label>
+                                            <Input
+                                                value={airbnbLink}
+                                                onChange={(e) => setAirbnbLink(e.target.value)}
+                                                placeholder="https://airbnb.com/rooms/..."
+                                            />
+                                        </div> */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Description
+                                            </label>
+                                            <Textarea
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                placeholder="Describe what you expect from the influencer..."
+                                                className="min-h-[100px]"
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{user?.fullName || "Michael Chen"}</p>
-                                        <p className="text-xs text-gray-500 capitalize flex items-center gap-1">
-                                            <Building2 className="w-3 h-3" />
-                                            {user?.role || "Host"}
+                                </div>
+                            </section>
+                            {/* Schedule */}
+                            <section>
+                                <Label className="text-lg font-semibold text-gray-900 mb-5">
+                                    Schedule
+                                </Label>
+                                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-lg">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Check-in time
+                                            </label>
+                                            <Select value={checkInTime} onValueChange={setCheckInTime}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="10:00 PM" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                                                    <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                                                    <SelectItem value="12:00 PM">12:00 PM</SelectItem>
+                                                    <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                                                    <SelectItem value="04:00 PM">04:00 PM</SelectItem>
+                                                    <SelectItem value="06:00 PM">06:00 PM</SelectItem>
+                                                    <SelectItem value="08:00 PM">08:00 PM</SelectItem>
+                                                    <SelectItem value="10:00 PM">10:00 PM</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Check-in date
+                                            </label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full justify-start text-left font-normal",
+                                                            !checkInDate && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {checkInDate ? (
+                                                            format(checkInDate, "PPP")
+                                                        ) : (
+                                                            <span>mm/dd/yyyy</span>
+                                                        )}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={checkInDate}
+                                                        onSelect={setCheckInDate}
+                                                        initialFocus
+                                                        required
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Check-out time
+                                            </label>
+                                            <Select value={checkOutTime} onValueChange={setCheckOutTime}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="12:00 PM" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                                                    <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                                                    <SelectItem value="12:00 PM">12:00 PM</SelectItem>
+                                                    <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                                                    <SelectItem value="04:00 PM">04:00 PM</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                                Check-out date
+                                            </label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full justify-start text-left font-normal",
+                                                            !checkOutDate && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {checkOutDate ? (
+                                                            format(checkOutDate, "PPP")
+                                                        ) : (
+                                                            <span>mm/dd/yyyy</span>
+                                                        )}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={checkOutDate}
+                                                        onSelect={setCheckOutDate}
+                                                        initialFocus
+                                                        required
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            {/* Compensation */}
+                            <section>
+                                <Label className="text-lg font-semibold text-gray-900 mb-5">
+                                    Compensation
+                                </Label>
+                                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-lg">
+                                    <div className="space-y-4">
+                                        <div
+                                            className={cn(
+                                                "border rounded-xl p-4 cursor-pointer transition-all",
+                                                compensationTypes.includes("nights")
+                                                    ? "border-teal-500 bg-teal-50/30 ring-1 ring-teal-500"
+                                                    : "border-gray-200 hover:border-gray-300"
+                                            )}
+                                            onClick={() => {
+                                                setCompensationTypes((prev) =>
+                                                    prev.includes("nights")
+                                                        ? prev.filter((t) => t !== "nights")
+                                                        : [...prev, "nights"]
+                                                );
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-900">
+                                                            Night Credits
+                                                        </h3>
+                                                        <p className="text-xs text-gray-500">
+                                                            Offer free nights at your property as compensation.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {compensationTypes.includes("nights") && (
+                                                    <div className="h-5 w-5 rounded-full bg-teal-500 flex items-center justify-center">
+                                                        <Check className="h-3 w-3 text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {compensationTypes.includes("nights") && (
+                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200 mt-4">
+                                                    <label className="text-sm font-medium text-gray-700">
+                                                        Number of Nights
+                                                    </label>
+                                                    <div className="flex items-center space-x-3">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setNightCount(Math.max(1, nightCount - 1));
+                                                            }}
+                                                        >
+                                                            <Minus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="w-8 text-black text-center text-sm font-medium">
+                                                            {nightCount}
+                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setNightCount(nightCount + 1);
+                                                            }}
+                                                        >
+                                                            <Plus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="text-xs text-gray-400 ml-2">nights</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div
+                                            className={cn(
+                                                "border rounded-xl p-4 cursor-pointer transition-all",
+                                                compensationTypes.includes("guests")
+                                                    ? "border-teal-500 bg-teal-50/30 ring-1 ring-teal-500"
+                                                    : "border-gray-200 hover:border-gray-300"
+                                            )}
+                                            onClick={() => {
+                                                setCompensationTypes((prev) =>
+                                                    prev.includes("guests")
+                                                        ? prev.filter((t) => t !== "guests")
+                                                        : [...prev, "guests"]
+                                                );
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">👥</span>
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-900">
+                                                            Number of Guests
+                                                        </h3>
+                                                        <p className="text-xs text-gray-500">
+                                                            Specify the total number of people staying.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {compensationTypes.includes("guests") && (
+                                                    <div className="h-5 w-5 rounded-full bg-teal-500 flex items-center justify-center">
+                                                        <Check className="h-3 w-3 text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {compensationTypes.includes("guests") && (
+                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200 mt-4">
+                                                    <label className="text-sm font-medium text-gray-700">
+                                                        Number of Guests
+                                                    </label>
+                                                    <div className="flex items-center space-x-3">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setGuestCount(Math.max(1, guestCount - 1));
+                                                            }}
+                                                        >
+                                                            <Minus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="w-8 text-black text-center text-sm font-medium">
+                                                            {guestCount}
+                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setGuestCount(guestCount + 1);
+                                                            }}
+                                                        >
+                                                            <Plus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="text-xs text-gray-400 ml-2">guests</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div
+                                            className={cn(
+                                                "border rounded-xl p-4 cursor-pointer transition-all",
+                                                compensationTypes.includes("payment")
+                                                    ? "border-teal-500 bg-teal-50/30 ring-1 ring-teal-500"
+                                                    : "border-gray-200 hover:border-gray-300"
+                                            )}
+                                            onClick={() => {
+                                                setCompensationTypes((prev) =>
+                                                    prev.includes("payment")
+                                                        ? prev.filter((t) => t !== "payment")
+                                                        : [...prev, "payment"]
+                                                );
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">💲</span>
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-900">
+                                                            Direct Payment
+                                                        </h3>
+                                                        <p className="text-xs text-gray-500">
+                                                            Pay the influencer a monetary amount.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {compensationTypes.includes("payment") && (
+                                                    <div className="h-5 w-5 rounded-full bg-teal-500 flex items-center justify-center">
+                                                        <Check className="h-3 w-3 text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {compensationTypes.includes("payment") && (
+                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <label className="text-sm font-medium text-gray-700">
+                                                        Payment Amount
+                                                    </label>
+                                                    <Input
+                                                        value={paymentAmount}
+                                                        onChange={(e) => setPaymentAmount(e.target.value)}
+                                                        placeholder="$0.00"
+                                                        className="bg-white"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </section>
+                        <section className="w-full">
+                            {/* Deliverable */}
+                            <Label className="text-lg font-semibold text-gray-900 mb-5">
+                                Deliverable
+                            </Label>
+                            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-lg mt-5">
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Select Platform
+                                        </label>
+                                        <div className="flex flex-wrap gap-3">
+                                            {["Instagram", "TikTok", "YouTube", "Facebook", "X (Twitter)"].map(
+                                                (platform) => (
+                                                    <Button
+                                                        key={platform}
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "gap-2 font-normal hover:text-gray-900 hover:border-gray-300 transition-colors",
+                                                            selectedPlatform === platform
+                                                                ? "bg-[#10B981CC] text-white hover:bg-[#10B981CC]/90 hover:text-white border-transparent"
+                                                                : "text-gray-600 bg-white"
+                                                        )}
+                                                        onClick={() => setSelectedPlatform(platform)}
+                                                    >
+
+                                                        {platform}
+                                                    </Button>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Content Type
+                                        </label>
+                                        <Select value={contentType} onValueChange={setContentType}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select content type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="post">Post</SelectItem>
+                                                <SelectItem value="story">Story</SelectItem>
+                                                <SelectItem value="reel">Reel</SelectItem>
+                                                <SelectItem value="video">Video</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-gray-400">
+                                            Choose what kind of content the influencer should create.
                                         </p>
                                     </div>
-                                </div>
 
-                                <div className="flex items-center gap-2">
-                                    <ArrowRight className="w-5 h-5 text-teal-500" />
-                                </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            How many contents should they create?
+                                        </label>
+                                        <div className="flex items-center space-x-3">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                onClick={() => setContentCount(Math.max(1, contentCount - 1))}
+                                            >
+                                                <Minus className="h-3 w-3" />
+                                            </Button>
+                                            <span className="w-8 text-center text-sm">{contentCount}</span>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                onClick={() => setContentCount(contentCount + 1)}
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-gray-400">e.g., 2 Reels + 1 Story</p>
+                                    </div>
 
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
-                                            <AvatarImage src={influencer.avatar} />
-                                            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-purple-600 text-white font-semibold">
-                                                {influencer.name.charAt(0)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                                    <div className="flex justify-end">
+                                        <Button
+                                            onClick={handleAddDeliverable}
+                                            disabled={!selectedPlatform}
+                                            className="bg-[#10B981CC] hover:bg-[#10B981CC]/90 text-white"
+                                        >
+                                            Add Deliverable
+                                        </Button>
                                     </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{influencer.name}</p>
-                                        <p className="text-xs text-gray-500">{influencer.role}</p>
-                                    </div>
+
+                                    {/* Added Deliverables List */}
+                                    {addedDeliverables.length > 0 && (
+                                        <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-700">
+                                                Added Deliverables
+                                            </h3>
+                                            <div className="space-y-2">
+                                                {addedDeliverables.map((item, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center justify-between bg-white p-3 rounded border border-gray-200"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium text-gray-900">
+                                                                {item.platform}
+                                                            </span>
+                                                            <span className="text-gray-400">•</span>
+                                                            <span className="text-gray-600 capitalize">
+                                                                {item.contentType}
+                                                            </span>
+                                                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                                                                x{item.count}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={() => handleRemoveDeliverable(index)}
+                                                        >
+                                                            <Minus className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Select Deal */}
-                        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardContent className="p-5">
-                                <Label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-teal-600" />
-                                    Select Deal Package
-                                </Label>
-                                <Select required>
-                                    <SelectTrigger className="w-full h-11 border-gray-300">
-                                        <SelectValue placeholder="Choose a deal package" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="miami">Weekend Getaway – Miami</SelectItem>
-                                        <SelectItem value="malibu">Week-long Stay – Malibu</SelectItem>
-                                        <SelectItem value="dubai">Luxury Experience – Dubai</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardContent>
-                        </Card>
-
-                        {/* Offers & Free Stay */}
-                        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardContent className="p-5 space-y-4">
-                                <div>
-                                    <Label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4 text-teal-600" />
-                                        Cash Offer
-                                    </Label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
-                                        <Input
-                                            type="number"
-                                            value={offerAmount}
-                                            onChange={(e) => setOfferAmount(e.target.value)}
-                                            placeholder="0.00"
-                                            className="pl-8 h-11 border-gray-300 text-lg"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-100">
-                                    <div>
-                                        <Label className="text-sm font-semibold text-gray-900">Include Free Stay?</Label>
-                                        <p className="text-xs text-gray-600 mt-0.5">Offer complimentary accommodation</p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIncludeFreeStay(!includeFreeStay)}
-                                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shadow-inner ${includeFreeStay ? "bg-gradient-to-r from-teal-500 to-teal-600" : "bg-gray-300"
-                                            }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${includeFreeStay ? "translate-x-6" : "translate-x-1"
-                                                }`}
-                                        />
-                                    </button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Number of Nights - Only visible when free stay is included */}
-                        {includeFreeStay && (
-                            <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                                <CardContent className="p-5">
-                                    <Label className="text-sm font-semibold text-gray-700 mb-4 block text-center">
-                                        Number of Nights
-                                    </Label>
-                                    <div className="flex items-center justify-center gap-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => setNights(Math.max(1, nights - 1))}
-                                            className="w-12 h-12 rounded-xl border-2 border-gray-300 flex items-center justify-center hover:bg-teal-50 hover:border-teal-500 transition-all shadow-sm"
-                                        >
-                                            <Minus className="w-5 h-5 text-gray-700" />
-                                        </button>
-                                        <div className="text-center min-w-[80px]">
-                                            <div className="text-5xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
-                                                {nights}
-                                            </div>
-                                            <div className="text-sm text-gray-500 font-medium mt-1">nights</div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNights(nights + 1)}
-                                            className="w-12 h-12 rounded-xl border-2 border-gray-300 flex items-center justify-center hover:bg-teal-50 hover:border-teal-500 transition-all shadow-sm"
-                                        >
-                                            <Plus className="w-5 h-5 text-gray-700" />
-                                        </button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Dates */}
-                        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardContent className="p-5 space-y-4">
-                                <div>
-                                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                                        Check-in Date
-                                    </Label>
-                                    <Input
-                                        type="date"
-                                        required
-                                        className="w-full h-11 border-gray-300"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                                        Check-out Date
-                                    </Label>
-                                    <Input
-                                        type="date"
-                                        required
-                                        className="w-full h-11 border-gray-300"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Submit Buttons */}
-                        <div className="space-y-3 mt-5 flex justify-end gap-2">
-                            <Button
-                                type="submit"
-                                className="w-1/4"
-                                disabled={isSending}
-                                variant="outline"
-                            >
-                                {isSending ? (
-                                    <span className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Sending Request...
-                                    </span>
-                                ) : (
-                                    "Send Collaboration Request"
-                                )}
-                            </Button>
-
-                            <Link href={`/influencers/${params.id}`} className="block">
-                                <button
-                                    type="button"
-
-                                    className="w-full px-10 border-2 border-gray-300 text-gray-700 font-semibold h-9 rounded-md transition-all"
-                                >
-                                    Cancel
-                                </button>
-                            </Link>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            {/* Success Modal */}
-            {showSuccessModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-300">
-                        {/* Success Icon */}
-                        <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-
-                        {/* Content */}
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-3">Request Sent Successfully!</h2>
-                            <p className="text-gray-600 leading-relaxed">
-                                Your collaboration request has been sent to <span className="font-semibold text-gray-900">{influencer.name}</span>. They will review your proposal and get back to you soon.
-                            </p>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="space-y-3">
-                            <Button
-                                onClick={() => router.push(`/influencers/${params.id}`)}
-                                variant="outline"
-                                className="w-full"
-                            >
-                                Back to Profile
-                            </Button>
-                        </div>
+                        </section>
                     </div>
                 </div>
-            )}
 
+                <div className="flex justify-end gap-4 mt-8">
+                    <Link href="/dashboard/collaborations">
+                        <Button className="bg-gray-200 hover:bg-gray-300 text-gray-600">
+                            Cancel
+                        </Button>
+                    </Link>
+                    <Button
+                        className="bg-teal-500 hover:bg-teal-600 text-white min-w-[140px]"
+                        onClick={handleSave}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Sending...
+                            </div>
+                        ) : (
+                            "Send Request"
+                        )}
+                    </Button>
+                </div>
+                {/* Success Modal */}
+                <Dialog open={open} onOpenChange={(val) => {
+                    setOpen(val);
+                    if (!val) router.push(`/influencers/${id}`);
+                }}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Collaboration Request Sent</DialogTitle>
+                            <DialogDescription>
+                                Your collaboration request has been sent successfully. The influencer will be notified.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="sm:justify-end">
+                            <Button
+                                className="bg-teal-500 hover:bg-teal-600 text-white"
+                                onClick={() => {
+                                    setOpen(false);
+                                    router.push(`/influencers/${id}`);
+                                }}
+                            >
+                                Done
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
             <Footer />
         </div>
     );

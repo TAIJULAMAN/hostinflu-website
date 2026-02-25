@@ -7,7 +7,7 @@ import { Footer } from "@/components/commom/footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Star, User } from "lucide-react";
+import { MapPin, Star, Sun, User } from "lucide-react";
 import { useGetUserByIdQuery } from "@/Redux/api/user/userApi";
 import { useGetReviewByIdQuery } from "@/Redux/api/review/reviewApi";
 import Loader from "@/components/commom/loader";
@@ -44,7 +44,7 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
     const name = influencerData?.name || "N/A";
     const userName = influencerData?.userName ? `@${influencerData.userName}` : "@username";
     const location = influencerData?.fullAddress || "No Location";
-    const about = influencerData?.bio || "No information provided.";
+    const about = influencerData?.aboutMe || "No information provided.";
     const image = influencerData?.image
         ? `${imgUrl}${influencerData.image}`
         : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
@@ -147,6 +147,10 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
                                                 <span>0</span>
                                             </div>
                                         )}
+                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-lg text-xs font-medium text-gray-600">
+                                            <Sun className="w-3.5 h-3.5 text-gray-400" />
+                                            <span>{nightCredits}</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -189,7 +193,7 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
                         <Card className="border-gray-200 shadow-sm">
                             <CardContent className="p-6">
                                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-3">
-                                    <Calendar className="w-5 h-5" />
+                                    <Sun className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
                                     {nightCredits}

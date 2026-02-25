@@ -26,10 +26,17 @@ const notificationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["notification"],
     }),
+    usersNotification: builder.query({
+      query: () => ({
+        url: `notification/collaboration`,
+        method: "GET",
+      }),
+      providesTags: ["notification"],
+    }),
   }),
 });
 
-export const { useGetAllNotificationQuery, useUpdateSingleNotificationMutation, useUpdateAllNotificationMutation } =
+export const { useGetAllNotificationQuery, useUpdateSingleNotificationMutation, useUpdateAllNotificationMutation, useUsersNotificationQuery } =
   notificationApi;
 
 export default notificationApi;

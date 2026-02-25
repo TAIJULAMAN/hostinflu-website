@@ -51,6 +51,14 @@ export const collaborationApi = baseApi.injectEndpoints({
             },
             invalidatesTags: ["collaborations"],
         }),
+        collaborationRequest: builder.mutation({
+            query: ({ id, body }) => ({
+                url: `collaboration/create-collaboration-web/${id}`,
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["collaborations"],
+        }),
     }),
 });
 
@@ -61,4 +69,5 @@ export const {
     useGetSingleCollaborationQuery,
     useGetCollaborationByUserIdQuery,
     useUpdateCollaborationStatusMutation,
+    useCollaborationRequestMutation,
 } = collaborationApi;

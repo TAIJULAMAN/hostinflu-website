@@ -62,7 +62,6 @@ export default function CollaborationEditPage({ params }: { params: { id: string
     };
 
     const handleSave = () => {
-        // TODO: submit updated data to backend
         setOpen(true);
     };
 

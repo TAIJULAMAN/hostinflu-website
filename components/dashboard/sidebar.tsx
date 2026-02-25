@@ -108,6 +108,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 Collaborations
               </Link>
               <Link
+                href="/dashboard/reviews"
+                className={getLinkClassName("/dashboard/reviews")}
+              >
+                <Star className="h-5 w-5" />
+                Reviews
+              </Link>
+              <Link
                 href="/dashboard/transactions"
                 className={getLinkClassName("/dashboard/transactions")}
               >
@@ -131,13 +138,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Link>
-              <Link
+              {/* <Link
                 href="/dashboard/share-profile"
                 className={getLinkClassName("/dashboard/share-profile")}
               >
                 <Share2 className="h-5 w-5" />
                 Share Profile
-              </Link>
+              </Link> */}
               <Link
                 href="/dashboard/influencer-collaborations"
                 className={getLinkClassName("/dashboard/influencer-collaborations")}
@@ -158,6 +165,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               >
                 <Star className="h-5 w-5" />
                 Redeem Stars
+              </Link>
+              <Link
+                href="/dashboard/reviews"
+                className={getLinkClassName("/dashboard/reviews")}
+              >
+                <Star className="h-5 w-5" />
+                Reviews
               </Link>
               <Link
                 href="/dashboard/chat"
