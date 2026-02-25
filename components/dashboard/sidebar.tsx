@@ -15,6 +15,7 @@ import {
   Star,
   DollarSign,
   LogOut,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -85,13 +86,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Link>
-              {/* <Link
-                href="/dashboard/active-deals"
-                className={getLinkClassName("/dashboard/active-deals")}
+              <Link
+                href="/dashboard/share-profile"
+                className={getLinkClassName("/dashboard/share-profile")}
               >
-                <Handshake className="h-5 w-5" />
-                Deals
-              </Link> */}
+                <Share2 className="h-5 w-5" />
+                Share Profile
+              </Link>
               <Link
                 href="/dashboard/lists"
                 className={getLinkClassName("/dashboard/lists")}
@@ -129,6 +130,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
+              </Link>
+              <Link
+                href="/dashboard/share-profile"
+                className={getLinkClassName("/dashboard/share-profile")}
+              >
+                <Share2 className="h-5 w-5" />
+                Share Profile
               </Link>
               <Link
                 href="/dashboard/influencer-collaborations"
