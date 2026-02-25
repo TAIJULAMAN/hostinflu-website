@@ -12,6 +12,8 @@ import {
 import { Trash2, ChevronLeft, ChevronRight, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { imgUrl } from "@/config/envConfig";
 import {
     Pagination,
     PaginationContent,
@@ -19,26 +21,45 @@ import {
     PaginationItem,
 } from "@/components/ui/pagination";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { useGetAllMyCollaborationsQuery, useDeleteCollaborationMutation } from "@/Redux/api/collaboration/collaborationApi";
+import { useDeleteCollaborationMutation, useGetCollaborationByUserIdQuery } from "@/Redux/api/collaboration/collaborationApi";
 import Loader from "@/components/commom/loader";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 const ITEMS_PER_PAGE = 10;
 
 interface Collaboration {
     _id: string;
     description: string;
-    startDate: string;
-    endDate: string;
+    inTimeAndDate: string;
+    outTimeAndDate: string;
     status: string;
-    canAccept?: boolean;
-    compensation?: {
-        paymentAmount?: string | number;
-        numberOfNights?: number;
+    paymentStatus: string;
+    compensation: {
+        paymentAmount: string | number;
+        numberOfNights: number;
+        nightCredits: boolean;
+        directPayment: boolean;
     };
-    selectInfluencerOrHost?: {
+    userId: {
+        _id: string;
         name: string;
-        profileImage?: string;
+        image: string;
+        userName: string;
+        role: string;
+    };
+    selectInfluencerOrHost: {
+        _id: string;
+        name: string;
+        image: string;
+        userName: string;
+        role: string;
+    };
+    title: {
+        _id: string;
+        title: string;
+        location: string;
+        images: string[];
     };
 }
 
@@ -47,15 +68,28 @@ export default function Collaborations() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
-    const { data: collaborationsData, isLoading, isError, error } = useGetAllMyCollaborationsQuery({
-        page: currentPage,
-        limit: ITEMS_PER_PAGE,
-        searchTerm: searchTerm || undefined,
-        status: statusFilter || undefined,
-    });
+    const user = useSelector((state: any) => state.auth.user);
 
-    const collaborations: Collaboration[] = collaborationsData?.data?.collaborations || [];
-    const totalPages = collaborationsData?.totalPages || 0;
+    const effectiveId = user?._id || user?.id;
+
+    const { data: collaborationsData, isLoading, isError, error } = useGetCollaborationByUserIdQuery(
+        {
+            userId: effectiveId,
+            page: currentPage,
+            limit: ITEMS_PER_PAGE,
+            searchTerm: searchTerm || undefined,
+            status: statusFilter || undefined,
+        },
+        { skip: !effectiveId || effectiveId === "undefined" }
+    );
+
+    const collaborations = Array.isArray(collaborationsData?.data)
+        ? collaborationsData?.data
+        : [];
+
+    const totalPages = collaborationsData?.totalPages ||
+        collaborationsData?.data?.pagination?.totalPages ||
+        Math.ceil((collaborationsData?.count || collaborationsData?.data?.count || 0) / ITEMS_PER_PAGE);
 
     // Generate page numbers to show
     const getPageNumbers = () => {
@@ -219,8 +253,11 @@ export default function Collaborations() {
                 <Table>
                     <TableHeader>
                         <TableRow className="[&>th]:text-white [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-                            <TableHead className="rounded-tl-lg bg-[#10B981CC]">INFLUENCER</TableHead>
+                            <TableHead className="rounded-tl-lg bg-[#10B981CC]">
+                                {user?.role === "host" ? "INFLUENCER" : "HOST"}
+                            </TableHead>
                             <TableHead className="bg-[#10B981CC]">NAME</TableHead>
+                            <TableHead className="bg-[#10B981CC]">PAYMENT STATUS</TableHead>
                             <TableHead className="bg-[#10B981CC]">DURATION</TableHead>
                             <TableHead className="bg-[#10B981CC]">PAYMENT</TableHead>
                             <TableHead className="bg-[#10B981CC]">STATUS</TableHead>
@@ -231,7 +268,7 @@ export default function Collaborations() {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     <div className="flex items-center justify-center">
                                         <Loader />
                                     </div>
@@ -239,74 +276,82 @@ export default function Collaborations() {
                             </TableRow>
                         ) : isError ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center text-red-500">
+                                <TableCell colSpan={8} className="h-24 text-center text-red-500">
                                     Error loading collaborations: {(error as any)?.data?.message || "Something went wrong"}
                                 </TableCell>
                             </TableRow>
                         ) : collaborations.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center text-gray-500">
+                                <TableCell colSpan={8} className="h-24 text-center text-gray-500">
                                     No collaborations found.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            collaborations.map((item) => (
-                                <TableRow key={item._id} className="hover:bg-gray-50">
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-medium text-gray-900">
-                                                {item.selectInfluencerOrHost?.name || "N/A"}
-                                            </span>
-                                        </div>
-                                    </TableCell>
+                            collaborations.map((item: any) => {
+                                const isHost = user?.role === "host";
+                                const partner = isHost ? item.userId : item.selectInfluencerOrHost;
+                                const partnerImage = partner?.image ? `${imgUrl}${partner.image}` : "";
 
-                                    <TableCell className="text-gray-600">
-                                        {item.description}
-                                    </TableCell>
-                                    <TableCell className="text-gray-600 text-sm">
-                                        {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell className="text-gray-900 font-medium">
-                                        ${item.compensation?.paymentAmount || 0}
-                                    </TableCell>
-                                    <TableCell>
-                                        <span
-                                            className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                                                item.status
-                                            )}`}
-                                        >
-                                            {item.status}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-gray-700 font-medium">
-                                                {item.compensation?.numberOfNights || 0}
+                                return (
+                                    <TableRow key={item._id} className="hover:bg-gray-50">
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-medium text-gray-900 line-clamp-1">
+                                                    {partner?.name || "N/A"}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {item.title?.title || "N/A"}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {item.paymentStatus}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600 text-sm">
+                                            {item.inTimeAndDate ? new Date(item.inTimeAndDate).toLocaleDateString() : "N/A"} - {item.outTimeAndDate ? new Date(item.outTimeAndDate).toLocaleDateString() : "N/A"}
+                                        </TableCell>
+                                        <TableCell className="text-gray-900 font-medium">
+                                            ${item.compensation?.paymentAmount || 0}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span
+                                                className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                                                    item.status
+                                                )}`}
+                                            >
+                                                {item.status}
                                             </span>
-                                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex space-x-2">
-                                            <Link
-                                                href={`/dashboard/collaborations/details/${item._id}`}
-                                                className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
-                                                title="View Details"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDeleteClick(item._id)}
-                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                                title="Delete"
-                                                disabled={deleteModal.isLoading}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-gray-700 font-medium">
+                                                    {item.compensation?.numberOfNights || 0}
+                                                </span>
+                                                <Star className="h-4 w-4 text-[#fc826f] fill-[#fc826f]" />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex space-x-2">
+                                                <Link
+                                                    href={`/dashboard/collaborations/details/${item._id}`}
+                                                    className="p-1.5 text-teal-600 rounded-full hover:bg-gray-100"
+                                                    title="View Details"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDeleteClick(item._id)}
+                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                    title="Delete"
+                                                    disabled={deleteModal.isLoading}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>
@@ -374,8 +419,8 @@ export default function Collaborations() {
                 isOpen={deleteModal.isOpen}
                 onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
                 onConfirm={handleDeleteConfirm}
-                title="Delete Property"
-                description="Are you sure you want to delete this property from your list? This action cannot be undone."
+                title="Delete Collaboration"
+                description="Are you sure you want to delete this collaboration? This action cannot be undone."
                 isLoading={deleteModal.isLoading}
             />
         </div>

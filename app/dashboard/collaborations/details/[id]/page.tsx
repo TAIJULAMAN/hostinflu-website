@@ -13,18 +13,42 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeading } from "@/components/commom/pageHeading";
 import { useParams } from "next/navigation";
 import { useGetSingleCollaborationQuery } from "@/Redux/api/collaboration/collaborationApi";
 import Loader from "@/components/commom/loader";
 import { imgUrl } from "@/config/envConfig";
+import { useSelector } from "react-redux";
+import { useUpdateCollaborationStatusMutation } from "@/Redux/api/collaboration/collaborationApi";
+import { toast } from "sonner";
 
 export default function CollaborationDetailsPage() {
     const { id } = useParams();
     const { data: response, isLoading, isError, error } = useGetSingleCollaborationQuery(id);
 
+
     const collaboration = response?.data?.[0];
+    console.log({ collaboration }, "collaboration");
+
+    const creatorId = collaboration?.userId?._id;
+    console.log({ creatorId }, "creatorId");
+
+    const currentUser = useSelector((state: any) => state.auth.user);
+    const loggedInUserId = currentUser?._id || currentUser?.id;
+
+    const [updateStatus, { isLoading: isUpdating }] = useUpdateCollaborationStatusMutation();
+
+    const handleUpdateStatus = async (action: string) => {
+        const collabId = collaboration?._id || id;
+        console.log("SENDING_STATUS_UPDATE:", { id: collabId, action });
+        try {
+            await updateStatus({ id: collabId, action }).unwrap();
+            toast.success(`Collaboration ${action === "accept" ? "accepted" : "rejected"} successfully`);
+        } catch (err: any) {
+            console.error("STATUS_UPDATE_ERROR:", err);
+            toast.error(err?.data?.message || `Failed to ${action} collaboration`);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -89,7 +113,7 @@ export default function CollaborationDetailsPage() {
                 {/* Deal Title & Status */}
                 <div className="space-y-3">
                     <h2 className="text-2xl font-bold text-gray-900">
-                        {collaboration.description || "Collaboration Details"}
+                        {collaboration?.title?.title || "N/A"}
                     </h2>
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-500">
@@ -316,6 +340,16 @@ export default function CollaborationDetailsPage() {
                             </div>
                         </div>
 
+
+
+
+
+
+
+
+
+
+
                         {/* Payment Details */}
                         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
                             <div className="flex items-center justify-between">
@@ -324,7 +358,7 @@ export default function CollaborationDetailsPage() {
 
                             <div className="space-y-2">
                                 <p className="text-sm text-gray-500">Total Amount</p>
-                                <p className="text-3xl font-bold text-gray-900">${collaboration.compensation?.paymentAmount || '0.00'}</p>
+                                <p className="text-3xl font-bold text-gray-900">${collaboration?.compensation?.paymentAmount || '0.00'}</p>
                             </div>
 
                             <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
@@ -338,14 +372,70 @@ export default function CollaborationDetailsPage() {
                             </div>
 
                             <div className="pt-2">
-                                {collaboration.paymentStatus === "completed" ? (
+                                {collaboration?.status === "accepted" ? (
+                                    <Button className="w-full bg-[#fc826f] hover:bg-[#fc826f]/90 text-white py-3 h-auto rounded-lg font-semibold text-center text-base">
+                                        Pay Now
+                                    </Button>
+                                ) : (collaboration?.status === "completed" || collaboration?.status === "ongoing") ? (
                                     <div className="w-full bg-green-100 text-green-700 py-3 rounded-lg font-semibold text-center">
-                                        Payment completed
+                                        Payment Paid
                                     </div>
                                 ) : (
                                     <div className="w-full bg-gray-100 text-gray-500 py-3 rounded-lg font-semibold text-center">
                                         Payment Pending
                                     </div>
+                                )}
+                            </div>
+
+                            <div className="pt-2">
+                                {collaboration?.status === "pending" || collaboration?.status === "negotiating" ? (
+                                    <div className="flex flex-col gap-2">
+                                        {loggedInUserId === creatorId ? (
+                                            <div>
+                                                <Button
+                                                    onClick={() => handleUpdateStatus("reject")}
+                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 h-auto rounded-lg font-semibold"
+                                                    disabled={isUpdating}
+                                                >
+                                                    Cancel Collaboration
+                                                </Button>
+                                            </div>
+                                        ) : (
+
+                                            <div className="flex flex-col gap-2">
+                                                <Button
+                                                    onClick={() => handleUpdateStatus("accept")}
+                                                    className="w-full bg-[#10B981CC] hover:bg-[#10B981] text-white py-3 h-auto rounded-lg font-semibold"
+                                                    disabled={isUpdating}
+                                                >
+                                                    Approve
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full text-white py-3 h-auto rounded-lg font-semibold"
+                                                >
+                                                    Message
+                                                </Button>
+                                                <Button
+                                                    onClick={() => handleUpdateStatus("reject")}
+                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 h-auto rounded-lg font-semibold"
+                                                    disabled={isUpdating}
+                                                >
+                                                    Reject
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <div>
+                                {collaboration?.status === "pending" && loggedInUserId !== creatorId && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-teal-600 text-teal-600 hover:bg-teal-50 py-3 h-auto rounded-lg font-semibold"
+                                    >
+                                        Negotiate
+                                    </Button>
                                 )}
                             </div>
                         </div>

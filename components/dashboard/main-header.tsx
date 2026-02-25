@@ -11,7 +11,7 @@ import { imgUrl } from "@/config/envConfig";
 
 export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   const user = useSelector((state: any) => state.auth.user);
-  console.log(user, "user");
+  // console.log(user, "user");
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-4 sm:px-6">
       <div>

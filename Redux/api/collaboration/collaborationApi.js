@@ -32,6 +32,25 @@ export const collaborationApi = baseApi.injectEndpoints({
             }),
             providesTags: ["collaborations"],
         }),
+        getCollaborationByUserId: builder.query({
+            query: ({ userId, ...params }) => ({
+                url: `collaboration/get-collaboration-user/${userId}`,
+                method: "GET",
+                params,
+            }),
+            providesTags: ["collaborations"],
+        }),
+        updateCollaborationStatus: builder.mutation({
+            query: ({ id, action }) => {
+                console.log("RTK_QUERY_DEBUG: updating status", { id, action });
+                return {
+                    url: `collaboration/accept-or-reject-collaboration/${id}`,
+                    method: "PATCH",
+                    body: { action: action },
+                };
+            },
+            invalidatesTags: ["collaborations"],
+        }),
     }),
 });
 
@@ -40,4 +59,6 @@ export const {
     useGetAllMyCollaborationsQuery,
     useDeleteCollaborationMutation,
     useGetSingleCollaborationQuery,
+    useGetCollaborationByUserIdQuery,
+    useUpdateCollaborationStatusMutation,
 } = collaborationApi;

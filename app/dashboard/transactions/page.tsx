@@ -222,6 +222,7 @@ export default function TransactionsPage() {
                                 <TableCell className="text-gray-600 max-w-xs truncate">
                                     {transaction?.title?.title}
                                 </TableCell>
+
                                 <TableCell className="font-semibold text-gray-900">
                                     ${(transaction.amount / 100).toFixed(2)}
                                 </TableCell>
