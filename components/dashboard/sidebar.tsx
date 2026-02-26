@@ -16,6 +16,7 @@ import {
   DollarSign,
   LogOut,
   Share2,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -128,6 +129,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <MessageCircle className="h-5 w-5" />
                 Message
               </Link>
+
             </>
           ) : (
             <>
@@ -138,33 +140,19 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Link>
-              {/* <Link
-                href="/dashboard/share-profile"
-                className={getLinkClassName("/dashboard/share-profile")}
-              >
-                <Share2 className="h-5 w-5" />
-                Share Profile
-              </Link> */}
               <Link
-                href="/dashboard/influencer-collaborations"
-                className={getLinkClassName("/dashboard/influencer-collaborations")}
+                href="/dashboard/collaborations"
+                className={getLinkClassName("/dashboard/collaborations")}
               >
                 <Handshake className="h-5 w-5" />
                 Collaborations
               </Link>
               <Link
-                href="/dashboard/influencer-transactions"
-                className={getLinkClassName("/dashboard/influencer-transactions")}
+                href="/dashboard/transactions"
+                className={getLinkClassName("/dashboard/transactions")}
               >
                 <DollarSign className="h-5 w-5" />
                 Transactions
-              </Link>
-              <Link
-                href="/dashboard/influencer-redeem-requests"
-                className={getLinkClassName("/dashboard/influencer-redeem-requests")}
-              >
-                <Star className="h-5 w-5" />
-                Redeem Stars
               </Link>
               <Link
                 href="/dashboard/reviews"
@@ -186,6 +174,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               >
                 <Settings className="h-5 w-5" />
                 Onboarding
+              </Link>
+              <Link
+                href="/dashboard/referrals"
+                className={getLinkClassName("/dashboard/referrals")}
+              >
+                <Ticket className="h-5 w-5" />
+                Referrals
               </Link>
             </>
           )}

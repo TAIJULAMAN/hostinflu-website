@@ -155,7 +155,7 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
                                 </div>
 
 
-                                <Link href={`/collaboration-request/${id}`}>
+                                <Link href={`/collaboration-request/${id}?nightCredits=${nightCredits}`}>
                                     <Button className="bg-[#fc826f] hover:bg-[#fc826f]/90 text-white font-semibold rounded-lg px-6 h-11 shadow-sm">
                                         Send Collaboration Request
                                     </Button>

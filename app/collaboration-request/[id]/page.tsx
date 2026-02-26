@@ -30,14 +30,19 @@ import { useMyVerifiedListingsQuery } from "@/Redux/api/host/list/listApi";
 import { Loader2 } from "lucide-react";
 import { useCollaborationRequestMutation } from "@/Redux/api/collaboration/collaborationApi";
 import { toast } from "sonner";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 export default function CollaborationEditPage() {
     const { id } = useParams();
+    const searchParams = useSearchParams();
+    const availableNights = Number(searchParams.get("nightCredits")) || 0;
+
     const [contentCount, setContentCount] = useState(2);
-    const [nightCount, setNightCount] = useState(3);
+    const [nightCount, setNightCount] = useState(availableNights > 0 ? Math.min(1, availableNights) : 0);
     const [guestCount, setGuestCount] = useState(2);
-    const [compensationTypes, setCompensationTypes] = useState<string[]>(["nights", "payment", "guests"]);
+    const [compensationTypes, setCompensationTypes] = useState<string[]>(
+        availableNights > 0 ? ["nights", "payment", "guests"] : ["payment", "guests"]
+    );
     const [checkInDate, setCheckInDate] = useState<Date>(new Date("2024-06-15"));
     const [checkOutDate, setCheckOutDate] = useState<Date>(new Date("2024-06-18"));
     const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
@@ -93,6 +98,11 @@ export default function CollaborationEditPage() {
             return;
         }
 
+        if (compensationTypes.includes("nights") && availableNights > 0 && nightCount > availableNights) {
+            toast.error(`Maximum available night credits is ${availableNights}`);
+            return;
+        }
+
         const combineDateTime = (date: Date, timeStr: string) => {
             const [time, modifier] = timeStr.split(" ");
             let [hours, minutes] = time.split(":").map(Number);
@@ -139,7 +149,7 @@ export default function CollaborationEditPage() {
             <Navbar />
             <div className="container mx-auto py-20">
                 <div className="mb-10 text-center">
-                    <PageHeading title="Edit Collaboration" />
+                    <PageHeading title="Collaboration Request" />
                 </div>
 
                 <div className="space-y-5">
@@ -177,16 +187,6 @@ export default function CollaborationEditPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        {/* <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-700">
-                                                Airbnb Link
-                                            </label>
-                                            <Input
-                                                value={airbnbLink}
-                                                onChange={(e) => setAirbnbLink(e.target.value)}
-                                                placeholder="https://airbnb.com/rooms/..."
-                                            />
-                                        </div> */}
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-gray-700">
                                                 Description
@@ -328,6 +328,10 @@ export default function CollaborationEditPage() {
                                                     : "border-gray-200 hover:border-gray-300"
                                             )}
                                             onClick={() => {
+                                                if (availableNights === 0) {
+                                                    toast.error("Influencer has no night credits available");
+                                                    return;
+                                                }
                                                 setCompensationTypes((prev) =>
                                                     prev.includes("nights")
                                                         ? prev.filter((t) => t !== "nights")
@@ -339,10 +343,12 @@ export default function CollaborationEditPage() {
                                                 <div className="flex items-center gap-2">
                                                     <div>
                                                         <h3 className="font-semibold text-gray-900">
-                                                            Night Credits
+                                                            Night Stay
                                                         </h3>
-                                                        <p className="text-xs text-gray-500">
-                                                            Offer free nights at your property as compensation.
+                                                        <p className="text-xs text-red-500">
+                                                            {availableNights > 0
+                                                                ? `Influencer has ${availableNights} night credits available.`
+                                                                : "Influencer has no night credits available."}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -379,6 +385,10 @@ export default function CollaborationEditPage() {
                                                             className="h-8 w-8 bg-white"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
+                                                                if (availableNights > 0 && nightCount >= availableNights) {
+                                                                    toast.error(`Host only has ${availableNights} night credits available`);
+                                                                    return;
+                                                                }
                                                                 setNightCount(nightCount + 1);
                                                             }}
                                                         >
@@ -390,76 +400,7 @@ export default function CollaborationEditPage() {
                                             )}
                                         </div>
 
-                                        <div
-                                            className={cn(
-                                                "border rounded-xl p-4 cursor-pointer transition-all",
-                                                compensationTypes.includes("guests")
-                                                    ? "border-teal-500 bg-teal-50/30 ring-1 ring-teal-500"
-                                                    : "border-gray-200 hover:border-gray-300"
-                                            )}
-                                            onClick={() => {
-                                                setCompensationTypes((prev) =>
-                                                    prev.includes("guests")
-                                                        ? prev.filter((t) => t !== "guests")
-                                                        : [...prev, "guests"]
-                                                );
-                                            }}
-                                        >
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xl">👥</span>
-                                                    <div>
-                                                        <h3 className="font-semibold text-gray-900">
-                                                            Number of Guests
-                                                        </h3>
-                                                        <p className="text-xs text-gray-500">
-                                                            Specify the total number of people staying.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {compensationTypes.includes("guests") && (
-                                                    <div className="h-5 w-5 rounded-full bg-teal-500 flex items-center justify-center">
-                                                        <Check className="h-3 w-3 text-white" />
-                                                    </div>
-                                                )}
-                                            </div>
 
-                                            {compensationTypes.includes("guests") && (
-                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200 mt-4">
-                                                    <label className="text-sm font-medium text-gray-700">
-                                                        Number of Guests
-                                                    </label>
-                                                    <div className="flex items-center space-x-3">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            className="h-8 w-8 bg-white"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setGuestCount(Math.max(1, guestCount - 1));
-                                                            }}
-                                                        >
-                                                            <Minus className="h-3 w-3 text-black" />
-                                                        </Button>
-                                                        <span className="w-8 text-black text-center text-sm font-medium">
-                                                            {guestCount}
-                                                        </span>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            className="h-8 w-8 bg-white"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setGuestCount(guestCount + 1);
-                                                            }}
-                                                        >
-                                                            <Plus className="h-3 w-3 text-black" />
-                                                        </Button>
-                                                        <span className="text-xs text-gray-400 ml-2">guests</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
 
                                         <div
                                             className={cn(
@@ -507,6 +448,80 @@ export default function CollaborationEditPage() {
                                                         className="bg-white"
                                                         onClick={(e) => e.stopPropagation()}
                                                     />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div
+                                            className={cn(
+                                                "border rounded-xl p-4 cursor-pointer transition-all",
+                                                availableNights === 0 ? "cursor-not-allowed bg-gray-50" : (compensationTypes.includes("guests")
+                                                    ? "border-teal-500 bg-teal-50/30 ring-1 ring-teal-500"
+                                                    : "border-gray-200 hover:border-gray-300")
+                                            )}
+                                            onClick={() => {
+                                                if (availableNights === 0) return;
+                                                setCompensationTypes((prev) =>
+                                                    prev.includes("guests")
+                                                        ? prev.filter((t) => t !== "guests")
+                                                        : [...prev, "guests"]
+                                                );
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">👥</span>
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-900">
+                                                            Number of Guests
+                                                        </h3>
+                                                        <p className={cn("text-xs", availableNights === 0 ? "text-red-500" : "text-gray-500")}>
+                                                            {availableNights > 0
+                                                                ? "Specify the total number of people staying."
+                                                                : "Influencer has no night credits available."}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {compensationTypes.includes("guests") && availableNights > 0 && (
+                                                    <div className="h-5 w-5 rounded-full bg-teal-500 flex items-center justify-center">
+                                                        <Check className="h-3 w-3 text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {compensationTypes.includes("guests") && (
+                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200 mt-4">
+                                                    <label className="text-sm font-medium text-gray-700">
+                                                        Number of Guests
+                                                    </label>
+                                                    <div className="flex items-center space-x-3">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setGuestCount(Math.max(1, guestCount - 1));
+                                                            }}
+                                                        >
+                                                            <Minus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="w-8 text-black text-center text-sm font-medium">
+                                                            {guestCount}
+                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setGuestCount(guestCount + 1);
+                                                            }}
+                                                        >
+                                                            <Plus className="h-3 w-3 text-black" />
+                                                        </Button>
+                                                        <span className="text-xs text-gray-400 ml-2">guests</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

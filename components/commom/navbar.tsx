@@ -92,7 +92,7 @@ export function Navbar() {
               ) : (
                 <>
                   <NavLink href="/hosts">Hosts</NavLink>
-                  <NavLink href="/deals">Deals</NavLink>
+                  <NavLink href="/deals">Listings</NavLink>
                 </>
               )}
             </>
@@ -100,7 +100,7 @@ export function Navbar() {
             <>
               <NavLink href="/hosts">Hosts</NavLink>
               <NavLink href="/influencers">Influencers</NavLink>
-              <NavLink href="/deals">Deals</NavLink>
+              <NavLink href="/deals">Listings</NavLink>
             </>
           )}
 

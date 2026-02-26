@@ -260,10 +260,12 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
 
 const ListingSection = ({ id }: { id: string }) => {
     const { data: listingsData } = useGetAllListingsByHostIdQuery(id);
-    const listings = listingsData?.data || [];
+    const data = listingsData?.data;
+    const listings = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : []);
+
     console.log(listings, "listings from single user");
 
-    if (listings.length === 0) return null;
+    if (!listings || listings.length === 0) return null;
 
     return (
         <div className="space-y-5">
