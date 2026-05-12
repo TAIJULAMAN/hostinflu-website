@@ -1,56 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Linkedin, Star, Twitter, Users, Video, Youtube } from "lucide-react";
+import { Search, Star, Users, Video } from "lucide-react";
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
 import { imgUrl } from "@/config/envConfig";
 import Loader from "@/components/commom/loader";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
+import { CustomPagination } from "@/components/commom/custom-pagination";
+import { useDebounce } from "@/hooks/useDebounce";
+import { SocialIcon } from "@/components/influencer/social-icon";
+import { FollowerCount } from "@/components/influencer/follower-count";
 
 
 export default function InfluencersPage() {
     const [page, setPage] = useState(1);
-    const { data, isLoading, isError } = useGetAllUsersQuery({ role: "influencer", page, limit: 10 });
-    const influencersData = data?.data?.filter((user: any) => user.role === "influencer") || [];
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm, 500);
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
+
+    const { data, isLoading, isError } = useGetAllUsersQuery({
+        role: "influencer",
+        page,
+        limit: 10,
+        search: debouncedSearch
+    });
+
+    const influencersData = data?.data?.filter((user: any) => {
+        const matchesRole = user.role === "influencer";
+        const matchesSearch = searchTerm
+            ? user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            : true;
+        return matchesRole && matchesSearch;
+    }) || [];
     const pagination = data?.pagination;
 
-    const getSocialIcon = (platform: string) => {
-        switch (platform.toLowerCase()) {
-            case 'facebook':
-                return <Facebook className="w-3.5 h-3.5 text-gray-400 hover:text-[#1877F2] transition-colors" />;
-            case 'instagram':
-                return <Instagram className="w-3.5 h-3.5 text-gray-400 hover:text-[#E4405F] transition-colors" />;
-            case 'twitter':
-            case 'x':
-                return <Twitter className="w-3.5 h-3.5 text-gray-400 hover:text-[#1DA1F2] transition-colors" />;
-            case 'linkedin':
-                return <Linkedin className="w-3.5 h-3.5 text-gray-400 hover:text-[#0A66C2] transition-colors" />;
-            case 'youtube':
-                return <Youtube className="w-3.5 h-3.5 text-gray-400 hover:text-[#FF0000] transition-colors" />;
-            default:
-                return <Users className="w-3.5 h-3.5 text-gray-400" />;
-        }
-    };
 
-    const formatFollowers = (count: number) => {
-        if (!count) return '0';
-        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-        return count.toString();
-    };
 
 
     return (
@@ -66,6 +60,18 @@ export default function InfluencersPage() {
                         <p className="text-gray-500 max-w-2xl mx-auto">
                             Connect with our verified influencers and showcase your property to their engaged audience.
                         </p>
+                    </div>
+                    <div className="flex justify-end mb-8">
+                        <div className="relative w-64">
+                            <input
+                                type="text"
+                                placeholder="Search influencers"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                        </div>
                     </div>
 
                     {isLoading ? (
@@ -85,21 +91,17 @@ export default function InfluencersPage() {
                                 const role = influencer?.category || influencer?.role || "Lifestyle";
                                 const image = influencer?.image
                                     ? `${imgUrl}${influencer.image}`
-                                    : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80";
+                                    : "/placeholder-user.jpg";
                                 const rating = influencer?.averageRating ? Number(influencer.averageRating).toFixed(1) : "0.0";
                                 const isFounder = influencer?.isFounderMember;
                                 const isVerified = influencer?.status === 'active';
-
-                                // Calculate total followers
-                                const followersCount = influencer?.socialMediaLinks?.reduce((acc: number, link: any) => acc + (link.followers || 0), 0) || 0;
-                                const collaborations = influencer?.collaborationsTotal || influencer?.dealsTotal || 0;
+                                const collaborations = influencer?.collaborationsTotal || influencer?.completeDealsTotal || 0;
 
                                 return (
                                     <div
                                         key={influencer._id}
                                         className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden"
                                     >
-                                        {/* Influencer Image - Full Width */}
                                         <div className="relative w-full aspect-[4/3] overflow-hidden">
                                             <Image
                                                 src={image}
@@ -139,8 +141,8 @@ export default function InfluencersPage() {
                                                                     key={link._id || idx}
                                                                     className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-lg text-xs font-medium text-gray-600"
                                                                 >
-                                                                    {getSocialIcon(link.platform)}
-                                                                    <span>{formatFollowers(link.followers)}</span>
+                                                                    <SocialIcon platform={link.platform} />
+                                                                    <FollowerCount count={link.followers} />
                                                                 </div>
                                                             ))
                                                         ) : (
@@ -178,50 +180,12 @@ export default function InfluencersPage() {
                     )}
 
                     {/* Pagination */}
-                    {pagination && pagination.totalPages > 1 && (
-                        <div className="mt-12">
-                            <Pagination>
-                                <PaginationContent>
-                                    <PaginationItem>
-                                        <PaginationPrevious
-                                            href="#"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                if (page > 1) setPage(page - 1);
-                                            }}
-                                            className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                        />
-                                    </PaginationItem>
-
-                                    {[...Array(pagination.totalPages)].map((_, i) => (
-                                        <PaginationItem key={i + 1}>
-                                            <PaginationLink
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    setPage(i + 1);
-                                                }}
-                                                isActive={page === i + 1}
-                                                className="cursor-pointer"
-                                            >
-                                                {i + 1}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    ))}
-
-                                    <PaginationItem>
-                                        <PaginationNext
-                                            href="#"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                if (page < pagination.totalPages) setPage(page + 1);
-                                            }}
-                                            className={page >= pagination.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                        />
-                                    </PaginationItem>
-                                </PaginationContent>
-                            </Pagination>
-                        </div>
+                    {pagination && (
+                        <CustomPagination
+                            page={page}
+                            totalPages={pagination.totalPages}
+                            setPage={setPage}
+                        />
                     )}
                 </div>
             </div>

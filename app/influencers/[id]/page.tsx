@@ -12,9 +12,11 @@ import { useGetUserByIdQuery } from "@/Redux/api/user/userApi";
 import { useGetReviewByIdQuery } from "@/Redux/api/review/reviewApi";
 import Loader from "@/components/commom/loader";
 import { imgUrl } from "@/config/envConfig";
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Users, Video, Calendar, Facebook, Instagram, Twitter, Linkedin, Youtube } from "lucide-react";
+import { CheckCircle2, Users, Video, Calendar } from "lucide-react";
+import { SocialIcon } from "@/components/influencer/social-icon";
+import { FollowerCount } from "@/components/influencer/follower-count";
+import { InfluencerReviews } from "@/components/influencer/influencer-reviews";
 
 
 
@@ -24,7 +26,6 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
     const { data: reviewsResponse, isLoading: isReviewsLoading } = useGetReviewByIdQuery(id);
     const influencerData = userResponse?.data;
     const reviews = reviewsResponse?.data || [];
-    console.log(reviews, "reviews");
 
     if (isUserLoading || isReviewsLoading) {
         return (
@@ -47,7 +48,7 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
     const about = influencerData?.aboutMe || "No information provided.";
     const image = influencerData?.image
         ? `${imgUrl}${influencerData.image}`
-        : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
+        : "/placeholder-user.jpg";
 
     const nightCredits = influencerData?.nightCredits || 0;
     const averageRating = influencerData?.averageRating ? Number(influencerData.averageRating).toFixed(1) : "0.0";
@@ -56,29 +57,6 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
     const isVerified = influencerData?.status === 'active';
     const isFounder = influencerData?.isFounderMember;
 
-    const getSocialIcon = (platform: string) => {
-        switch (platform.toLowerCase()) {
-            case 'facebook':
-                return <Facebook className="w-3.5 h-3.5 text-gray-400 hover:text-[#1877F2] transition-colors" />;
-            case 'instagram':
-                return <Instagram className="w-3.5 h-3.5 text-gray-400 hover:text-[#E4405F] transition-colors" />;
-            case 'twitter':
-            case 'x':
-                return <Twitter className="w-3.5 h-3.5 text-gray-400 hover:text-[#1DA1F2] transition-colors" />;
-            case 'linkedin':
-                return <Linkedin className="w-3.5 h-3.5 text-gray-400 hover:text-[#0A66C2] transition-colors" />;
-            case 'youtube':
-                return <Youtube className="w-3.5 h-3.5 text-gray-400 hover:text-[#FF0000] transition-colors" />;
-            default:
-                return <Users className="w-3.5 h-3.5 text-gray-400" />;
-        }
-    };
-    const formatFollowers = (count: number) => {
-        if (!count) return '0';
-        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-        return count.toString();
-    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -137,8 +115,8 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
                                                     rel="noopener noreferrer"
                                                     className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-xs font-medium text-gray-600 group/link"
                                                 >
-                                                    {getSocialIcon(link.platform)}
-                                                    <span>{formatFollowers(link.followers)}</span>
+                                                    <SocialIcon platform={link.platform} />
+                                                    <FollowerCount count={link.followers} />
                                                 </a>
                                             ))
                                         ) : (
@@ -214,61 +192,7 @@ export default function InfluencerProfilePage({ params }: { params: Promise<{ id
                     </Card>
 
                     {/* Reviews Section */}
-                    <Card className="border-gray-200 shadow-sm">
-                        <CardContent className="p-6 md:p-8">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">Reviews</h2>
-
-                            <div className="space-y-6">
-                                {reviews.length > 0 ? (
-                                    reviews.map((review: any) => (
-                                        <div key={review._id} className="flex gap-4 pb-6 border-b border-gray-100 last:border-0">
-                                            <Avatar className="w-12 h-12 flex-shrink-0">
-                                                <AvatarImage
-                                                    src={review.user?.image ? `${imgUrl}${review.user.image}` : `https://avatar.iran.liara.run/public/${Math.floor(Math.random() * 50)}`}
-                                                    className="object-cover"
-                                                />
-                                                <AvatarFallback>{review.user?.name?.[0] || "U"}</AvatarFallback>
-                                            </Avatar>
-
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="font-semibold text-gray-900">{review.user?.name || "Anonymous"}</h3>
-                                                </div>
-
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className="flex items-center gap-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star
-                                                                key={i}
-                                                                className={`w-4 h-4 ${i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200"}`}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-xs text-gray-500">
-                                                        {review.createdAt ? format(new Date(review.createdAt), "PP") : "N/A"}
-                                                    </span>
-                                                </div>
-
-                                                <p className="text-sm text-gray-600 leading-relaxed">
-                                                    {review.comment}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500 text-center">No reviews yet.</p>
-                                )}
-                            </div>
-
-                            {reviews.length > 5 && (
-                                <div className="mt-6 text-center">
-                                    <Button variant="outline">
-                                        Load More Reviews
-                                    </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <InfluencerReviews reviews={reviews} />
                 </div>
             </div>
             <Footer />
