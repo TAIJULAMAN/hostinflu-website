@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/commom/navbar";
@@ -10,11 +11,21 @@ import { Facebook, Instagram, Linkedin, Star, Twitter, Users, Video, Youtube } f
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
 import { imgUrl } from "@/config/envConfig";
 import Loader from "@/components/commom/loader";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 
 export default function InfluencersPage() {
-    const { data, isLoading, isError } = useGetAllUsersQuery({ role: "influencer" });
+    const [page, setPage] = useState(1);
+    const { data, isLoading, isError } = useGetAllUsersQuery({ role: "influencer", page, limit: 10 });
     const influencersData = data?.data?.filter((user: any) => user.role === "influencer") || [];
+    const pagination = data?.pagination;
 
     const getSocialIcon = (platform: string) => {
         switch (platform.toLowerCase()) {
@@ -163,6 +174,53 @@ export default function InfluencersPage() {
                                     </div>
                                 );
                             })}
+                        </div>
+                    )}
+
+                    {/* Pagination */}
+                    {pagination && pagination.totalPages > 1 && (
+                        <div className="mt-12">
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (page > 1) setPage(page - 1);
+                                            }}
+                                            className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                        />
+                                    </PaginationItem>
+
+                                    {[...Array(pagination.totalPages)].map((_, i) => (
+                                        <PaginationItem key={i + 1}>
+                                            <PaginationLink
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setPage(i + 1);
+                                                }}
+                                                isActive={page === i + 1}
+                                                className="cursor-pointer"
+                                            >
+                                                {i + 1}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (page < pagination.totalPages) setPage(page + 1);
+                                            }}
+                                            className={page >= pagination.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
                         </div>
                     )}
                 </div>

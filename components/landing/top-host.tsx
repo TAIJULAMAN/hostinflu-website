@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Building2, Home, Hotel, Tent, User } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { useTopHostsQuery } from "@/Redux/api/user/userApi";
 import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
@@ -44,12 +44,12 @@ export default function TopHost() {
                     <div className="text-center text-gray-500">No hosts found.</div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {hostsData?.map((host: any, index: number) => {
+                        {hostsData?.slice(0, 4).map((host: any, index: number) => {
                             const name = host?.name || "N/A";
                             const location = host?.fullAddress || "No Location";
                             const image = host?.image ? `${imgUrl}${host.image}` : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
                             const rating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
-                            const deals = host?.dealCount ? `${host?.dealCount} deals` : "0 deals";
+                            const collaborationsTotal = host?.collaborationsTotal || 0;
 
                             return (
                                 <div
@@ -92,7 +92,7 @@ export default function TopHost() {
                                         </div>
 
                                         <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500 mb-5">
-                                            <span>{deals}</span>
+                                            <span className="font-bold">{collaborationsTotal} collaborations</span>
                                             <span className="text-teal-600 font-medium text-xs bg-teal-50 px-2 py-1 rounded-full">Verified Host</span>
                                         </div>
 

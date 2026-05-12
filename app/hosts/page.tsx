@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin } from "lucide-react";
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
-import { Spinner } from "@/components/ui/spinner";
 import { imgUrl } from "@/config/envConfig";
 import Loader from "@/components/commom/loader";
 
