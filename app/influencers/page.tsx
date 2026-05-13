@@ -7,7 +7,7 @@ import { Navbar } from "@/components/commom/navbar";
 import { Footer } from "@/components/commom/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Star, Users, Video } from "lucide-react";
+import { Heart, Search, Star, Users, Video } from "lucide-react";
 import { useGetAllUsersQuery } from "@/Redux/api/user/userApi";
 import { imgUrl } from "@/config/envConfig";
 import Loader from "@/components/commom/loader";
@@ -15,6 +15,8 @@ import { CustomPagination } from "@/components/commom/custom-pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SocialIcon } from "@/components/influencer/social-icon";
 import { FollowerCount } from "@/components/influencer/follower-count";
+import { useCreateFavoriteMutation } from "@/Redux/api/bookmark/bookmarkApi";
+import { toast } from "sonner";
 
 
 export default function InfluencersPage() {
@@ -32,6 +34,10 @@ export default function InfluencersPage() {
         limit: 10,
         search: debouncedSearch
     });
+
+    const [createFavorite] = useCreateFavoriteMutation();
+    const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+
 
     const influencersData = data?.data?.filter((user: any) => {
         const matchesRole = user.role === "influencer";
@@ -112,19 +118,41 @@ export default function InfluencersPage() {
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
 
                                             {isFounder && (
-                                                <div className="absolute top-3 right-3">
+                                                <div className="absolute top-3 right-3 z-10">
                                                     <Badge className="bg-white/90 backdrop-blur-md text-orange-600 border-none shadow-sm font-medium text-xs px-2.5 py-1">
                                                         <span className="mr-1">👑</span> Founder Member
                                                     </Badge>
                                                 </div>
                                             )}
 
-                                            <div className="absolute bottom-3 left-3 text-white">
-                                                <div className="flex items-center gap-1 text-xs font-medium bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                                                    <Video className="w-3 h-3" />
-                                                    {role}
-                                                </div>
-                                            </div>
+                                            <button
+                                                className="absolute top-4 left-4 z-10 p-2 rounded-full bg-black/10 backdrop-blur-md border border-white/20 transition-all duration-300 shadow-sm"
+                                                onClick={async (e) => {
+                                                    e.preventDefault();
+                                                    const isBookmarked = bookmarkedIds.includes(influencer._id);
+                                                    try {
+                                                        const res = await createFavorite(influencer._id).unwrap();
+                                                        if (isBookmarked) {
+                                                            setBookmarkedIds((prev) => prev.filter((id) => id !== influencer._id));
+                                                        } else {
+                                                            setBookmarkedIds((prev) => [...prev, influencer._id]);
+                                                        }
+                                                        toast.success(res?.message || (isBookmarked ? "Influencer saved to favorites" : "Removed from favorites"));
+                                                    } catch (error: any) {
+                                                        toast.error(error?.data?.message || "Failed to update favorites");
+                                                    }
+                                                }}
+                                                aria-label='add-to-wishlist'
+                                            >
+                                                <Heart
+                                                    className={`w-6 h-6 transition-all duration-500 cursor-pointer ${bookmarkedIds.includes(influencer._id)
+                                                        ? "text-red-500 fill-red-500"
+                                                        : "text-white hover:text-red-500"
+                                                        }`}
+                                                />
+                                            </button>
+
+
                                         </div>
 
                                         {/* Content */}
