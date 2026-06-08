@@ -18,8 +18,6 @@ const Chat = () => {
 
     const [selectedConversation, setSelectedConversation] = useState<any>(null);
     const otherParticipant = selectedConversation?.participants?.[0];
-
-    // Fetch messages for the selected conversation's recipient
     const { data: messagesData, isLoading: isMessagesLoading, refetch: refetchMessages } = useGetMessagesByReceiverIdQuery(
         otherParticipant?._id,
         { skip: !otherParticipant?._id }
@@ -35,7 +33,6 @@ const Chat = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const socketRef = useRef<Socket | null>(null);
 
-    // Socket Initialization
     useEffect(() => {
         if (!currentUserId) {
             console.log('[Socket] No currentUserId, skipping connection');
@@ -111,8 +108,6 @@ const Chat = () => {
         const participant = conv.participants?.[0];
         return participant?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     });
-
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -149,8 +144,6 @@ const Chat = () => {
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Socket logic for files can be complex, usually involves base64 or a separate upload endpoint
-            // For now, we'll keep it as a placeholder or implement base64 if expected
             console.log('File upload requested:', file.name);
         }
     };

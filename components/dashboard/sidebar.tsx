@@ -17,6 +17,7 @@ import {
   LogOut,
   Share2,
   Ticket,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -130,6 +131,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 Message
               </Link>
 
+              <Link
+                href="/dashboard/favourite"
+                className={getLinkClassName("/dashboard/favourite")}
+              >
+                <Heart className="h-5 w-5" />
+                Favourite
+              </Link>
             </>
           ) : (
             <>

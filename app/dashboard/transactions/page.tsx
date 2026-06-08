@@ -19,7 +19,6 @@ import {
     PaginationEllipsis,
     PaginationItem,
 } from "@/components/ui/pagination";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { useGetTransactionQuery } from "@/Redux/api/transaction/transactionApi";
 
