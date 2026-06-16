@@ -18,6 +18,7 @@ export default function ReviewsPage() {
     });
 
     const reviews = reviewsResponse?.data?.reviews || [];
+    console.log(reviews, "reviews")
     if (isLoading) return <Loader />;
 
     if (isError) {

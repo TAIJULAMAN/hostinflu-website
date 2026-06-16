@@ -12,7 +12,6 @@ import {
 import { Trash2, ChevronLeft, ChevronRight, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { imgUrl } from "@/config/envConfig";
 import {
     Pagination,
@@ -27,41 +26,6 @@ import { toast } from "sonner";
 import { useSelector } from "react-redux";
 
 const ITEMS_PER_PAGE = 10;
-
-interface Collaboration {
-    _id: string;
-    description: string;
-    inTimeAndDate: string;
-    outTimeAndDate: string;
-    status: string;
-    paymentStatus: string;
-    compensation: {
-        paymentAmount: string | number;
-        numberOfNights: number;
-        nightCredits: boolean;
-        directPayment: boolean;
-    };
-    userId: {
-        _id: string;
-        name: string;
-        image: string;
-        userName: string;
-        role: string;
-    };
-    selectInfluencerOrHost: {
-        _id: string;
-        name: string;
-        image: string;
-        userName: string;
-        role: string;
-    };
-    title: {
-        _id: string;
-        title: string;
-        location: string;
-        images: string[];
-    };
-}
 
 export default function Collaborations() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -83,13 +47,16 @@ export default function Collaborations() {
         { skip: !effectiveId || effectiveId === "undefined" }
     );
 
-    const collaborations = Array.isArray(collaborationsData?.data)
-        ? collaborationsData?.data
-        : [];
+    const collaborations = Array.isArray(collaborationsData?.data?.collaborations)
+        ? collaborationsData?.data?.collaborations
+        : Array.isArray(collaborationsData?.data)
+            ? collaborationsData?.data
+            : [];
 
-    const totalPages = collaborationsData?.totalPages ||
-        collaborationsData?.data?.pagination?.totalPages ||
-        Math.ceil((collaborationsData?.count || collaborationsData?.data?.count || 0) / ITEMS_PER_PAGE);
+    const totalPages = collaborationsData?.data?.pagination?.totalPages ||
+        collaborationsData?.pagination?.totalPages ||
+        collaborationsData?.totalPages ||
+        Math.ceil((collaborationsData?.data?.pagination?.total || collaborationsData?.count || 0) / ITEMS_PER_PAGE) || 1;
 
     // Generate page numbers to show
     const getPageNumbers = () => {

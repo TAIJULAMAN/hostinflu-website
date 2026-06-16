@@ -5,6 +5,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useGetInfluencerEarningGrowthQuery } from '@/Redux/api/influencer/influencerApi';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -13,21 +14,22 @@ const months = [
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-const yearlyEarnings = {
-    2022: [800, 1200, 1000, 1500, 1800, 2000, 2200, 2000, 1800, 1600, 2000, 2200],
-    2023: [1200, 1500, 1800, 2000, 2300, 2500, 2800, 3000, 2800, 2600, 3000, 3200]
-};
-
 export default function EarningGrowthChart() {
-    const [selectedYear, setSelectedYear] = useState(2023);
-    const years = [2022, 2023];
+    const currentYear = new Date().getFullYear();
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+
+    const { data: earningResponse, isLoading } = useGetInfluencerEarningGrowthQuery({ year: selectedYear });
+    
+    const monthlyData = earningResponse?.data?.monthlyData || [];
+    const chartDataValues = monthlyData.length > 0 ? monthlyData.map((item: any) => item.amount) : new Array(12).fill(0);
 
     const data = {
         labels: months,
         datasets: [
             {
                 label: 'Monthly Earnings',
-                data: yearlyEarnings[selectedYear as keyof typeof yearlyEarnings],
+                data: chartDataValues,
                 backgroundColor: 'rgba(16, 185, 129, 0.8)',
                 borderRadius: 4
             }
@@ -86,7 +88,11 @@ export default function EarningGrowthChart() {
                 </div>
             </div>
             <div className="h-80">
-                <Bar data={data} options={options} />
+                {isLoading ? (
+                    <div className="h-full flex items-center justify-center text-gray-500">Loading chart...</div>
+                ) : (
+                    <Bar data={data} options={options} />
+                )}
             </div>
         </div>
     );

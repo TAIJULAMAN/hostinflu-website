@@ -19,9 +19,7 @@ export default function CollaborationGrowthChart() {
     const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
     const { data: collaborationData, isLoading } = useUserCollaborationGrowthQuery({ year: selectedYear });
-
     const monthlyCounts = collaborationData?.data?.monthlyData?.map((item: any) => item.count) || new Array(12).fill(0);
-
     const data = {
         labels: months,
         datasets: [
@@ -34,7 +32,6 @@ export default function CollaborationGrowthChart() {
             }
         ]
     };
-
     const options = {
         responsive: true,
         maintainAspectRatio: false,

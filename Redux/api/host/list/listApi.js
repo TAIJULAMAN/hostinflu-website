@@ -4,7 +4,7 @@ export const listApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAllLists: builder.query({
             query: (params) => ({
-                url: `listing/my-listings`,
+                url: `listing/all-listings`,
                 method: "GET",
                 params,
             }),

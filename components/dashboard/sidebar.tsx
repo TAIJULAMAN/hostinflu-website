@@ -190,6 +190,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 <Ticket className="h-5 w-5" />
                 Referrals
               </Link>
+              <Link
+                href="/dashboard/favourite"
+                className={getLinkClassName("/dashboard/favourite")}
+              >
+                <Heart className="h-5 w-5" />
+                Favourite List
+              </Link>
             </>
           )}
         </nav>

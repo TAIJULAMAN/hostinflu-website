@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Menu, Bell, Search, MessageSquareMore } from "lucide-react";
+import { Menu, Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { imgUrl } from "@/config/envConfig";
 import { useGetProfileQuery } from "@/Redux/api/profileApi";
 import { useSelector } from "react-redux";
+import { useUsersNotificationQuery } from "@/Redux/api/notification/notificationApi";
 
 export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { user, token } = useSelector((state: any) => state.auth);
@@ -19,6 +20,12 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   });
   const profile = profileResponse?.data;
   const displayUser = profile || user;
+
+  const { data: notificationResponse } = useUsersNotificationQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const notifications = notificationResponse?.data?.notifications || [];
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-4 sm:px-6">
@@ -47,9 +54,14 @@ export function MainHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full border border-teal-600 w-10 h-10"
+              className="relative rounded-full border border-teal-600 w-10 h-10"
             >
-              <Bell className="h-10 w-10 text-teal-600" />
+              <Bell className="h-5 w-5 text-teal-600" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </Button>
           </Link>
           <Link href="/profile">

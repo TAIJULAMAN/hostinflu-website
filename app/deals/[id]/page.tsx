@@ -56,7 +56,7 @@ export default function DealDetailsPage({ params }: { params: Promise<{ id: stri
 
                     <div className="container max-w-5xl mx-auto flex justify-end gap-4 mt-6">
                         <Link href="/deals">
-                            <Button variant="outline">Back to Deals</Button>
+                            <Button variant="outline">Back to listings</Button>
                         </Link>
                     </div>
                 </div>

@@ -40,7 +40,7 @@ export const dealsApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["deals"],
         }),
-        searchList: builder.query({
+        searchDealsList: builder.query({
             query: (params) => ({
                 url: `search/specific`,
                 method: "GET",
@@ -65,6 +65,6 @@ export const {
     useCreateDealMutation,
     useUpdateDealMutation,
     useDeleteDealMutation,
-    useSearchListQuery,
+    useSearchDealsListQuery,
     useGetAllDealsByInfluencerQuery,
 } = dealsApi;
