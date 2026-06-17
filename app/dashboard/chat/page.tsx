@@ -127,12 +127,6 @@ const Chat = () => {
             return;
         }
 
-<<<<<<< Updated upstream
-        // Connect to server with userId as query parameter
-        const socket = io(imgUrl, {
-            query: { userId: currentUserId },
-            transports: ['websocket', 'polling']
-=======
         setSelectedConversationId(null);
         setManualRecipient({
             _id: requestedUserId,
@@ -177,7 +171,6 @@ const Chat = () => {
             query: { userId: currentUserId, token: token || "" },
             transports: ["websocket", "polling"],
             withCredentials: true,
->>>>>>> Stashed changes
         });
 
         socketRef.current = socket;
