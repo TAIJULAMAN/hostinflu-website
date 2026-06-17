@@ -44,7 +44,7 @@ export default function CollaborationEditPage() {
     const [description, setDescription] = useState(searchParams.get("description") || "");
     const [addAirbnbLink, setAddAirbnbLink] = useState("");
     const [checkInTime, setCheckInTime] = useState("10:00 PM");
-    const [checkOutTime, setCheckOutTime] = useState("10:00 PM");
+    const [checkOutTime, setCheckOutTime] = useState("12:00 PM");
     const [paymentAmount, setPaymentAmount] = useState("500");
 
     const router = useRouter();

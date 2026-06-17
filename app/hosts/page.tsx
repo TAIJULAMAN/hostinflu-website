@@ -97,7 +97,7 @@ export default function HostsPage() {
                                             </div>
 
                                             <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500 mb-5">
-                                                <span>{deals} deals</span>
+                                                <span>{deals} collaborations</span>
                                                 {isVerified && (
                                                     <span className="text-teal-600 font-medium text-xs bg-teal-50 px-2 py-1 rounded-full">Verified Host</span>
                                                 )}

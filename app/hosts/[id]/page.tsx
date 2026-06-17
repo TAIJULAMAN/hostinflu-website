@@ -51,16 +51,21 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
         ? `${imgUrl}${host.image}`
         : "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80";
     const rating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
-    const collaborations = host?.collaborationsTotal || 0;
+    const collaborations = host?.collaborationsTotal || "N/A";
     const joinedYear = host?.createdAt ? new Date(host.createdAt).getFullYear() : "N/A";
     const isVerified = host?.status === 'active';
     const isFounder = host?.isFounderMember;
 
     // Stats
     const activeListings = host?.listingsTotal || 0;
-    const completedDeals = host?.completeDealsTotal || host?.dealsTotal || 0;
+    const completedCollaboration = host?.collaborationStats?.total || "N/A";
     const averageRating = host?.averageRating ? Number(host.averageRating).toFixed(1) : "0.0";
     const responseRate = host?.responseRate ? `${host.responseRate}%` : "0%";
+
+    const { data: hostListingsData } = useGetAllListingsByHostIdQuery(id, { skip: !id });
+    const hostListingsDataItems = hostListingsData?.data;
+    const hostListings = Array.isArray(hostListingsDataItems) ? hostListingsDataItems : (Array.isArray(hostListingsDataItems?.listings) ? hostListingsDataItems.listings : []);
+    const verifiedListings = hostListings?.length || 0;
 
     // loading state
     if (!id || isLoading) {
@@ -135,9 +140,9 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                                     <Home className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {activeListings}
+                                    {verifiedListings}
                                 </div>
-                                <div className="text-sm text-gray-500">Total Listings</div>
+                                <div className="text-sm text-gray-500">Verified Listings</div>
                             </CardContent>
                         </Card>
 
@@ -147,9 +152,9 @@ export default function HostProfilePage({ params }: { params: Promise<{ id: stri
                                     <Handshake className="w-5 h-5" />
                                 </div>
                                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                                    {completedDeals}
+                                    {completedCollaboration}
                                 </div>
-                                <div className="text-sm text-gray-500">Completed Collaborations</div>
+                                <div className="text-sm text-gray-500">Total Collaborations</div>
                             </CardContent>
                         </Card>
 
@@ -359,11 +364,13 @@ const ListingSection = ({ id }: { id: string }) => {
                                             Details
                                         </Button>
                                     </Link>
-                                    <Button
-                                        className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium h-10 shadow-sm shadow-teal-200"
-                                    >
-                                        Collaboration
-                                    </Button>
+                                    <Link href={`/collaboration-request/${id}?listingId=${listing._id}&title=${encodeURIComponent(listing.title || "")}&description=${encodeURIComponent(listing.description || "")}`} className="flex-1">
+                                        <Button
+                                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium h-10 shadow-sm shadow-teal-200"
+                                        >
+                                            Collaboration
+                                        </Button>
+                                    </Link>
                                 </div>
                             </div>
                         </CardContent>

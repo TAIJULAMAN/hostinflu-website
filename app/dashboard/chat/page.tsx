@@ -42,7 +42,7 @@ const Chat = () => {
         console.log(`[Socket] Attempting to connect for user: ${currentUserId}`);
 
         // Connect to server with userId as query parameter
-        const socket = io('http://localhost:3000', {
+        const socket = io(imgUrl, {
             query: { userId: currentUserId },
             transports: ['websocket', 'polling']
         });

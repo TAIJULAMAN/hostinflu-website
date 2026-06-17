@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/components/commom/loader";
 import { CustomPagination } from "@/components/commom/custom-pagination";
@@ -18,12 +18,12 @@ const ITEMS_PER_PAGE = 10;
 export default function FavouritePage() {
     const [currentPage, setCurrentPage] = useState(1);
     const user = useSelector((state: any) => state.auth.user);
-    
+
     const { data: response, isLoading, isError } = useGetFavouriteListQuery({
         page: currentPage,
         limit: ITEMS_PER_PAGE
     });
-    
+
     const [createFavouriteList] = useCreateFavouriteListMutation();
 
     const favoritesData = response?.data?.listings || [];
@@ -33,7 +33,6 @@ export default function FavouritePage() {
     const handleToggleFavorite = async (e: React.MouseEvent, listingId: string) => {
         e.preventDefault();
         try {
-            // Adjust the payload format if the mutation requires different arguments.
             const res = await createFavouriteList({ listingId, data: {} }).unwrap();
             toast.success(res?.message || "Removed from favorites");
         } catch (error: any) {

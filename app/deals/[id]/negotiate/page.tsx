@@ -47,7 +47,7 @@ export default function NegotiateDealPage() {
     const [checkInDate, setCheckInDate] = useState<Date | undefined>(new Date());
     const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(new Date(new Date().setDate(new Date().getDate() + 3)));
     const [checkInTime, setCheckInTime] = useState("10:00 PM");
-    const [checkOutTime, setCheckOutTime] = useState("10:00 PM");
+    const [checkOutTime, setCheckOutTime] = useState("12:00 PM");
 
     // --- Compensation State ---
     const [nightCreditsEnabled, setNightCreditsEnabled] = useState(true);
