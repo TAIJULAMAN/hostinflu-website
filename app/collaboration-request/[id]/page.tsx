@@ -10,6 +10,7 @@ import { useMyVerifiedListingsQuery } from "@/Redux/api/host/list/listApi";
 import { useCollaborationRequestMutation } from "@/Redux/api/collaboration/collaborationApi";
 import { toast } from "sonner";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 import { DeliverablesSection } from "@/components/collaboration/deliverables-section";
 import { CompensationSection } from "@/components/collaboration/compensation-section";
@@ -19,6 +20,7 @@ import { SuccessModal } from "@/components/collaboration/success-modal";
 
 export default function CollaborationEditPage() {
     const { id } = useParams();
+    const { user } = useAuth();
     const searchParams = useSearchParams();
     const availableNights = Number(searchParams.get("nightCredits")) || 0;
     const [contentCount, setContentCount] = useState(2);
@@ -38,8 +40,9 @@ export default function CollaborationEditPage() {
         { platform: "TikTok", contentType: "video", count: 1 },
     ]);
     const [open, setOpen] = useState(false);
-    const [selectedListing, setSelectedListing] = useState<string>("");
-    const [description, setDescription] = useState("");
+    const [selectedListing, setSelectedListing] = useState<string>(searchParams.get("listingId") || "");
+    const [description, setDescription] = useState(searchParams.get("description") || "");
+    const [addAirbnbLink, setAddAirbnbLink] = useState("");
     const [checkInTime, setCheckInTime] = useState("10:00 PM");
     const [checkOutTime, setCheckOutTime] = useState("10:00 PM");
     const [paymentAmount, setPaymentAmount] = useState("500");
@@ -48,7 +51,15 @@ export default function CollaborationEditPage() {
 
     const [collaborationRequest, { isLoading: isSubmitting }] = useCollaborationRequestMutation();
     const { data: listingsData, isLoading: listingsLoading } = useMyVerifiedListingsQuery(undefined);
-    const listings = listingsData?.data?.listings || [];
+    
+    const fetchedListings = listingsData?.data?.listings || [];
+    const listings = [...fetchedListings];
+    const listingIdParam = searchParams.get("listingId");
+    const titleParam = searchParams.get("title");
+    
+    if (listingIdParam && titleParam && !listings.find(l => l._id === listingIdParam)) {
+        listings.push({ _id: listingIdParam, title: titleParam });
+    }
 
     const handleAddDeliverable = () => {
         if (selectedPlatform && contentType && contentCount > 0) {
@@ -105,6 +116,7 @@ export default function CollaborationEditPage() {
         const payload = {
             title: selectedListing,
             description,
+            addAirbnbLink,
             inTimeAndDate: combineDateTime(checkInDate, checkInTime),
             outTimeAndDate: combineDateTime(checkOutDate, checkOutTime),
             compensation: {
@@ -115,7 +127,7 @@ export default function CollaborationEditPage() {
             },
             guestCount: compensationTypes.includes("guests") ? guestCount : 0,
             deliverables: addedDeliverables.map(d => ({
-                platform: d.platform,
+                platform: d.platform.toLowerCase(),
                 contentType: d.contentType.charAt(0).toUpperCase() + d.contentType.slice(1),
                 quantity: d.count
             })),
@@ -150,6 +162,8 @@ export default function CollaborationEditPage() {
                                 listings={listings}
                                 description={description}
                                 setDescription={setDescription}
+                                addAirbnbLink={addAirbnbLink}
+                                setAddAirbnbLink={setAddAirbnbLink}
                             />
                             <ScheduleSection
                                 checkInTime={checkInTime}
@@ -211,7 +225,13 @@ export default function CollaborationEditPage() {
                 <SuccessModal
                     open={open}
                     setOpen={setOpen}
-                    onDone={() => router.push(`/influencers/${id}`)}
+                    onDone={() => {
+                        if (user?.role === "influencer") {
+                            router.push("/deals");
+                        } else if (user?.role === "host") {
+                            router.push("/influencers");
+                        }
+                    }}
                 />
             </div>
             <Footer />

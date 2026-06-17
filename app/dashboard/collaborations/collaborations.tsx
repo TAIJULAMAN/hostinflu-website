@@ -58,7 +58,6 @@ export default function Collaborations() {
         collaborationsData?.totalPages ||
         Math.ceil((collaborationsData?.data?.pagination?.total || collaborationsData?.count || 0) / ITEMS_PER_PAGE) || 1;
 
-    // Generate page numbers to show
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 3;
@@ -255,9 +254,8 @@ export default function Collaborations() {
                             </TableRow>
                         ) : (
                             collaborations.map((item: any) => {
-                                const isHost = user?.role === "host";
-                                const partner = isHost ? item.userId : item.selectInfluencerOrHost;
-                                const partnerImage = partner?.image ? `${imgUrl}${partner.image}` : "";
+                                const isMyInitiated = item?.userId?._id === effectiveId || item?.userId?.id === effectiveId || item?.userId === effectiveId;
+                                const partner = isMyInitiated ? item.selectInfluencerOrHost : item.userId;
 
                                 return (
                                     <TableRow key={item._id} className="hover:bg-gray-50">

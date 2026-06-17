@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeading } from "@/components/commom/pageHeading";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useGetSingleCollaborationQuery } from "@/Redux/api/collaboration/collaborationApi";
 import Loader from "@/components/commom/loader";
 import { imgUrl } from "@/config/envConfig";
@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 export default function CollaborationDetailsPage() {
     const { id } = useParams();
+    const router = useRouter();
     const { data: response, isLoading, isError, error } = useGetSingleCollaborationQuery(id);
 
 
@@ -413,6 +414,7 @@ export default function CollaborationDetailsPage() {
                                                 <Button
                                                     variant="outline"
                                                     className="w-full text-white py-3 h-auto rounded-lg font-semibold"
+                                                    onClick={() => router.push("/dashboard/chat")}
                                                 >
                                                     Message
                                                 </Button>
@@ -429,10 +431,10 @@ export default function CollaborationDetailsPage() {
                                 ) : null}
                             </div>
                             <div>
-                                {collaboration?.status === "pending" && loggedInUserId !== creatorId && (
+                                {collaboration?.status === "pending" && currentUser?.role === "influencer" && loggedInUserId !== creatorId && (
                                     <Button
                                         variant="outline"
-                                        className="w-full border-teal-600 text-teal-600 hover:bg-teal-50 py-3 h-auto rounded-lg font-semibold"
+                                        className="w-full text-white py-3 h-auto rounded-lg font-semibold"
                                     >
                                         Negotiate
                                     </Button>

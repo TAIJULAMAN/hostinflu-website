@@ -11,11 +11,13 @@ import { Heart, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/components/commom/loader";
 import { CustomPagination } from "@/components/commom/custom-pagination";
+import { useSelector } from "react-redux";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function FavouritePage() {
     const [currentPage, setCurrentPage] = useState(1);
+    const user = useSelector((state: any) => state.auth.user);
     
     const { data: response, isLoading, isError } = useGetFavouriteListQuery({
         page: currentPage,
@@ -126,11 +128,20 @@ export default function FavouritePage() {
                                         </div>
 
                                         {/* Action Button */}
-                                        <Link href={`/deals/${listing._id}`} className="mt-auto w-full">
-                                            <Button className="w-full bg-white border-2 border-[#fc826f] text-[#fc826f] hover:bg-[#fc826f] hover:text-white font-semibold rounded-xl h-11 transition-all duration-300">
-                                                View Details
-                                            </Button>
-                                        </Link>
+                                        <div className="flex gap-2 w-full mt-auto">
+                                            <Link href={`/deals/${listing._id}`} className="w-full">
+                                                <Button className="w-full bg-white border-2 border-[#fc826f] text-[#fc826f] hover:bg-[#fc826f] hover:text-white font-semibold rounded-xl h-11 transition-all duration-300">
+                                                    View Details
+                                                </Button>
+                                            </Link>
+                                            {user?.role === "influencer" && (
+                                                <Link href={`/collaboration-request/${listing.userId?._id || listing.userId}?listingId=${listing._id}&title=${encodeURIComponent(listing.title || "")}&description=${encodeURIComponent(listing.description || "")}`} className="w-full">
+                                                    <Button className="w-full bg-[#10B981CC] hover:bg-[#10B981] text-white font-semibold rounded-xl h-11 transition-all duration-300">
+                                                        Collaborate
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );

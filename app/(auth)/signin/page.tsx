@@ -76,7 +76,7 @@ export default function SignInPage() {
       );
 
       toast.success("Logged in successfully!");
-      router.push("/");
+      window.location.href = "/";
     } catch (error: any) {
       toast.error(error?.data?.message || "Invalid email or password");
     }

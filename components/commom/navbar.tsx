@@ -63,7 +63,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (

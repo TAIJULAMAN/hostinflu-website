@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetAllListsQuery } from "@/Redux/api/host/list/listApi";
 import { useCreateFavouriteListMutation } from "@/Redux/api/bookmark/bookmarkApi";
+import { useCollaborationRequestMutation } from "@/Redux/api/collaboration/collaborationApi";
 import { imgUrl } from "@/config/envConfig";
 import { CustomPagination } from "@/components/commom/custom-pagination";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -25,6 +26,7 @@ export default function DealsPage() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [selectedDeal, setSelectedDeal] = useState<any>(null);
     const [createFavouriteList] = useCreateFavouriteListMutation();
+    const [collaborationRequest] = useCollaborationRequestMutation();
 
     useEffect(() => {
         setPage(1);
@@ -49,8 +51,9 @@ export default function DealsPage() {
     const totalPages = pagination?.totalPage || pagination?.totalPages || 0;
 
     const handleCollaboration = (listing: any) => {
-        setSelectedDeal(listing);
-        setShowSuccessModal(true);
+        const title = encodeURIComponent(listing?.title || "");
+        const desc = encodeURIComponent(listing?.description || "");
+        router.push(`/collaboration-request/${listing.userId._id}?listingId=${listing._id}&title=${title}&description=${desc}`);
     };
 
     const handleToggleFavorite = async (e: React.MouseEvent, listingId: string) => {

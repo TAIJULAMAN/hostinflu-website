@@ -19,6 +19,8 @@ interface CollaborationBasicsProps {
     listings: any[];
     description: string;
     setDescription: (description: string) => void;
+    addAirbnbLink: string;
+    setAddAirbnbLink: (link: string) => void;
 }
 
 export const CollaborationBasics = ({
@@ -28,6 +30,8 @@ export const CollaborationBasics = ({
     listings,
     description,
     setDescription,
+    addAirbnbLink,
+    setAddAirbnbLink,
 }: CollaborationBasicsProps) => {
     return (
         <section>
@@ -70,6 +74,18 @@ export const CollaborationBasics = ({
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Describe what you expect from the influencer..."
                             className="min-h-[100px]"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">
+                            Airbnb Link (Optional)
+                        </label>
+                        <input
+                            type="url"
+                            value={addAirbnbLink}
+                            onChange={(e) => setAddAirbnbLink(e.target.value)}
+                            placeholder="https://airbnb.com/rooms/..."
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                     </div>
                 </div>
