@@ -36,6 +36,10 @@ export default function CollaborationDetailsPage() {
 
     const currentUser = useSelector((state: any) => state.auth.user);
     const loggedInUserId = currentUser?._id || currentUser?.id;
+    const messageRecipient =
+        collaboration?.userId?._id === loggedInUserId
+            ? collaboration?.selectInfluencerOrHost
+            : collaboration?.userId;
 
     const [updateStatus, { isLoading: isUpdating }] = useUpdateCollaborationStatusMutation();
 
@@ -414,7 +418,11 @@ export default function CollaborationDetailsPage() {
                                                 <Button
                                                     variant="outline"
                                                     className="w-full text-white py-3 h-auto rounded-lg font-semibold"
-                                                    onClick={() => router.push("/dashboard/chat")}
+                                                    onClick={() =>
+                                                        router.push(
+                                                            `/dashboard/chat?userId=${messageRecipient?._id || ""}&name=${encodeURIComponent(messageRecipient?.name || "")}&image=${encodeURIComponent(messageRecipient?.image || "")}`
+                                                        )
+                                                    }
                                                 >
                                                     Message
                                                 </Button>
