@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User as UserIcon, Lock, MapPin, Mail, Phone, Calendar, Facebook, Instagram, Loader2, Link as LinkIcon } from "lucide-react";
+import { CheckCircle2, User as UserIcon, Lock, MapPin, Mail, Phone, Calendar, Facebook, Instagram, Twitter, Youtube, Linkedin, Twitch, Github, Music2, Loader2, Link as LinkIcon } from "lucide-react";
 
 import { useMyProfileQuery } from "@/Redux/api/user/userApi";
 import { format } from "date-fns";
@@ -115,7 +115,13 @@ export default function ProfilePage() {
                                                     >
                                                         {link.platform === 'facebook' && <Facebook className="w-4 h-4 text-blue-600" />}
                                                         {link.platform === 'instagram' && <Instagram className="w-4 h-4 text-pink-600" />}
-                                                        {link.platform !== 'facebook' && link.platform !== 'instagram' && <LinkIcon className="w-4 h-4" />}
+                                                        {link.platform === 'twitter' && <Twitter className="w-4 h-4 text-blue-400" />}
+                                                        {link.platform === 'youtube' && <Youtube className="w-4 h-4 text-red-600" />}
+                                                        {link.platform === 'linkedin' && <Linkedin className="w-4 h-4 text-blue-700" />}
+                                                        {link.platform === 'twitch' && <Twitch className="w-4 h-4 text-purple-600" />}
+                                                        {link.platform === 'github' && <Github className="w-4 h-4 text-gray-800" />}
+                                                        {link.platform === 'tiktok' && <Music2 className="w-4 h-4 text-black" />}
+                                                        {(!['facebook', 'instagram', 'twitter', 'youtube', 'linkedin', 'twitch', 'github', 'tiktok'].includes(link.platform)) && <LinkIcon className="w-4 h-4" />}
                                                         <span>{formatFollowers(link.followers)}</span>
                                                     </a>
                                                 ))}
