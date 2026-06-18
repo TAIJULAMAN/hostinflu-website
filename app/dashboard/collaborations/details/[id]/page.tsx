@@ -19,15 +19,15 @@ import { useGetSingleCollaborationQuery } from "@/Redux/api/collaboration/collab
 import Loader from "@/components/commom/loader";
 import { imgUrl } from "@/config/envConfig";
 import { useSelector } from "react-redux";
-import { useUpdateCollaborationStatusMutation } from "@/Redux/api/collaboration/collaborationApi";
+import { useUpdateCollaborationStatusMutation, useCreateNegotiationMutation } from "@/Redux/api/collaboration/collaborationApi";
 import { toast } from "sonner";
+import { useState } from "react";
+import { X, Plus, Trash2 } from "lucide-react";
 
 export default function CollaborationDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
     const { data: response, isLoading, isError, error } = useGetSingleCollaborationQuery(id);
-
-
     const collaboration = response?.data?.[0];
     console.log({ collaboration }, "collaboration");
 
@@ -42,6 +42,54 @@ export default function CollaborationDetailsPage() {
             : collaboration?.userId;
 
     const [updateStatus, { isLoading: isUpdating }] = useUpdateCollaborationStatusMutation();
+    const [createNegotiation, { isLoading: isNegotiating }] = useCreateNegotiationMutation();
+
+    const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
+    const [negotiationData, setNegotiationData] = useState({
+        numberOfNights: 0,
+        paymentAmount: "0",
+        guestCount: 1,
+        negotiationMessage: "",
+        deliverables: [] as { platform: string; contentType: string; quantity: number }[],
+    });
+
+    const openNegotiationModal = () => {
+        setNegotiationData({
+            numberOfNights: collaboration?.compensation?.numberOfNights || 0,
+            paymentAmount: collaboration?.compensation?.paymentAmount || "0",
+            guestCount: collaboration?.guestCount || 1,
+            negotiationMessage: "",
+            deliverables: collaboration?.deliverables ? collaboration.deliverables.map((d: any) => ({ ...d })) : [],
+        });
+        setIsNegotiationModalOpen(true);
+    };
+
+    const handleNegotiateSubmit = async () => {
+        try {
+            await createNegotiation({
+                id: collaboration?._id || id,
+                data: {
+                    compensation: {
+                        numberOfNights: Number(negotiationData.numberOfNights),
+                        paymentAmount: String(negotiationData.paymentAmount),
+                    },
+                    guestCount: Number(negotiationData.guestCount),
+                    negotiationMessage: negotiationData.negotiationMessage,
+                    deliverables: negotiationData.deliverables.map((d: any) => ({
+                        platform: d.platform,
+                        contentType: d.contentType,
+                        quantity: Number(d.quantity)
+                    })),
+                }
+            }).unwrap();
+            toast.success("Negotiation sent successfully");
+            setIsNegotiationModalOpen(false);
+        } catch (error: any) {
+            console.error("Negotiation error stringified:", JSON.stringify(error, null, 2));
+            console.error("Negotiation error raw:", error);
+            toast.error(error?.data?.message || error?.error || "Failed to send negotiation");
+        }
+    };
 
     const handleUpdateStatus = async (action: string) => {
         const collabId = collaboration?._id || id;
@@ -395,18 +443,7 @@ export default function CollaborationDetailsPage() {
                             <div className="pt-2">
                                 {collaboration?.status === "pending" || collaboration?.status === "negotiating" ? (
                                     <div className="flex flex-col gap-2">
-                                        {loggedInUserId === creatorId ? (
-                                            <div>
-                                                <Button
-                                                    onClick={() => handleUpdateStatus("reject")}
-                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 h-auto rounded-lg font-semibold"
-                                                    disabled={isUpdating}
-                                                >
-                                                    Cancel Collaboration
-                                                </Button>
-                                            </div>
-                                        ) : (
-
+                                        {currentUser?.role === "host" ? (
                                             <div className="flex flex-col gap-2">
                                                 <Button
                                                     onClick={() => handleUpdateStatus("accept")}
@@ -434,6 +471,10 @@ export default function CollaborationDetailsPage() {
                                                     Reject
                                                 </Button>
                                             </div>
+                                        ) : (
+                                            <div className="w-full bg-gray-100 text-gray-500 py-3 rounded-lg font-semibold text-center capitalize">
+                                                {collaboration?.status}
+                                            </div>
                                         )}
                                     </div>
                                 ) : null}
@@ -443,6 +484,7 @@ export default function CollaborationDetailsPage() {
                                     <Button
                                         variant="outline"
                                         className="w-full text-white py-3 h-auto rounded-lg font-semibold"
+                                        onClick={openNegotiationModal}
                                     >
                                         Negotiate
                                     </Button>
@@ -452,6 +494,145 @@ export default function CollaborationDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Negotiation Modal */}
+            {isNegotiationModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                            <h2 className="text-xl font-semibold text-gray-900">Propose Negotiation</h2>
+                            <button
+                                onClick={() => setIsNegotiationModalOpen(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Number of Nights</label>
+                                    <input
+                                        type="number"
+                                        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                                        value={negotiationData.numberOfNights}
+                                        onChange={(e) => setNegotiationData({ ...negotiationData, numberOfNights: Number(e.target.value) })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Payment Amount</label>
+                                    <input
+                                        type="number"
+                                        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                                        value={negotiationData.paymentAmount}
+                                        onChange={(e) => setNegotiationData({ ...negotiationData, paymentAmount: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-sm font-medium text-gray-700">Guest Count</label>
+                                    <input
+                                        type="number"
+                                        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                                        value={negotiationData.guestCount}
+                                        onChange={(e) => setNegotiationData({ ...negotiationData, guestCount: Number(e.target.value) })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Message</label>
+                                <textarea
+                                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none min-h-[100px]"
+                                    placeholder="Explain your negotiation terms..."
+                                    value={negotiationData.negotiationMessage}
+                                    onChange={(e) => setNegotiationData({ ...negotiationData, negotiationMessage: e.target.value })}
+                                ></textarea>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-gray-700">Deliverables</label>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setNegotiationData({
+                                            ...negotiationData,
+                                            deliverables: [...negotiationData.deliverables, { platform: "Instagram", contentType: "Post", quantity: 1 }]
+                                        })}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" /> Add Deliverable
+                                    </Button>
+                                </div>
+
+                                {negotiationData.deliverables.map((del, index) => (
+                                    <div key={index} className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Platform (e.g. Instagram)"
+                                                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-teal-500"
+                                                value={del.platform}
+                                                onChange={(e) => {
+                                                    const newDel = [...negotiationData.deliverables];
+                                                    newDel[index] = { ...newDel[index], platform: e.target.value };
+                                                    setNegotiationData({ ...negotiationData, deliverables: newDel });
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Content Type"
+                                                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-teal-500"
+                                                value={del.contentType}
+                                                onChange={(e) => {
+                                                    const newDel = [...negotiationData.deliverables];
+                                                    newDel[index] = { ...newDel[index], contentType: e.target.value };
+                                                    setNegotiationData({ ...negotiationData, deliverables: newDel });
+                                                }}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="Quantity"
+                                                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-teal-500"
+                                                value={del.quantity}
+                                                onChange={(e) => {
+                                                    const newDel = [...negotiationData.deliverables];
+                                                    newDel[index] = { ...newDel[index], quantity: Number(e.target.value) };
+                                                    setNegotiationData({ ...negotiationData, deliverables: newDel });
+                                                }}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const newDel = [...negotiationData.deliverables];
+                                                newDel.splice(index, 1);
+                                                setNegotiationData({ ...negotiationData, deliverables: newDel });
+                                            }}
+                                            className="text-red-500 hover:text-red-700 p-2"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 rounded-b-xl sticky bottom-0">
+                            <Button variant="outline" onClick={() => setIsNegotiationModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                className="bg-teal-600 hover:bg-teal-700 text-white"
+                                onClick={handleNegotiateSubmit}
+                                disabled={isNegotiating}
+                            >
+                                {isNegotiating ? "Sending..." : "Send Proposal"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

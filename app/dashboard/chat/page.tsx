@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Send, Menu, MoreVertical, Image, CheckCheck } from "lucide-react";
+import { Search, Send, Menu, MoreVertical, Image, CheckCheck, X } from "lucide-react";
 import { io, Socket } from "socket.io-client";
-import { useGetAllConversationsQuery, useGetMessagesByReceiverIdQuery } from "@/Redux/api/chat/chatApi";
+import { useGetAllConversationsQuery, useGetMessagesByReceiverIdQuery, useSendMessageMutation } from "@/Redux/api/chat/chatApi";
 import { useMyProfileQuery } from "@/Redux/api/user/userApi";
 import { imgUrl } from "@/config/envConfig";
 
@@ -37,6 +37,8 @@ type Message = {
     createdAt?: string;
     conversationId?: string;
     isOptimistic?: boolean;
+    images?: string[];
+    imageUrl?: any[];
 };
 
 const getMessageTime = (message?: { createdAt?: string }) =>
@@ -107,6 +109,11 @@ const Chat = () => {
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [manualRecipient, setManualRecipient] = useState<Participant | null>(null);
+
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedFilePreview, setSelectedFilePreview] = useState<string | null>(null);
+    const [sendMessageMutation] = useSendMessageMutation();
+
     const [newMessage, setNewMessage] = useState("");
     const [showSidebar, setShowSidebar] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -269,8 +276,8 @@ const Chat = () => {
         setShowSidebar(false);
     };
 
-    const sendMessage = () => {
-        if (!newMessage.trim() || !socketRef.current || !receiverId) {
+    const sendMessage = async () => {
+        if ((!newMessage.trim() && !selectedFile) || !receiverId) {
             return;
         }
 
@@ -283,6 +290,7 @@ const Chat = () => {
             createdAt: new Date().toISOString(),
             conversationId: selectedConversation?._id,
             isOptimistic: true,
+            images: selectedFilePreview ? [selectedFilePreview] : undefined,
         };
 
         setOptimisticMessages((currentOptimisticMessages) => [
@@ -290,12 +298,26 @@ const Chat = () => {
             optimisticMessage,
         ]);
 
-        socketRef.current.emit("single-chat-send-message", {
-            text: trimmedMessage,
-            receiverId,
-        });
-
+        const currentFile = selectedFile;
         setNewMessage("");
+        removeSelectedFile();
+
+        if (currentFile) {
+            const formData = new FormData();
+            formData.append("images", currentFile, currentFile.name);
+            formData.append("text", trimmedMessage || "");
+
+            try {
+                await sendMessageMutation({ receiverId, formData }).unwrap();
+            } catch (err) {
+                console.error("Failed to send file message", err);
+            }
+        } else if (socketRef.current) {
+            socketRef.current.emit("single-chat-send-message", {
+                text: trimmedMessage,
+                receiverId,
+            });
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -308,8 +330,15 @@ const Chat = () => {
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            console.log("File upload requested:", file.name);
+            setSelectedFile(file);
+            setSelectedFilePreview(URL.createObjectURL(file));
         }
+    };
+
+    const removeSelectedFile = () => {
+        setSelectedFile(null);
+        setSelectedFilePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     return (
@@ -333,7 +362,7 @@ const Chat = () => {
                             className="text-gray-500 hover:text-gray-700"
                             onClick={() => setShowSidebar(false)}
                         >
-                            ✖
+                            <X className="w-5 h-5" />
                         </button>
                     </div>
 
@@ -459,7 +488,32 @@ const Chat = () => {
                                                         : "bg-white text-gray-900 border border-gray-200 rounded-bl-md"
                                                         }`}
                                                 >
-                                                    <p className="text-sm leading-relaxed">{msg.text}</p>
+                                                    {((msg.images && msg.images.length > 0) || msg.image || (msg.imageUrl && msg.imageUrl.length > 0)) && (
+                                                        <div className="mb-2 space-y-2">
+                                                            {(() => {
+                                                                let imgs: string[] = [];
+                                                                if (msg.images && Array.isArray(msg.images)) imgs = msg.images;
+                                                                else if (msg.imageUrl && Array.isArray(msg.imageUrl)) imgs = msg.imageUrl.map((imgObj: any) => imgObj?.url || imgObj);
+                                                                else if (msg.imageUrl && typeof msg.imageUrl === 'string') imgs = [msg.imageUrl];
+                                                                else if (msg.image) imgs = [msg.image];
+
+                                                                return imgs.map((img: string, idx: number) => (
+                                                                    img && (
+                                                                        <img
+                                                                            key={idx}
+                                                                            src={img.startsWith("blob:") || img.startsWith("http") ? img : `${imgUrl}${img}`}
+                                                                            alt="Attachment"
+                                                                            className="rounded-lg max-w-full h-auto max-h-48 object-cover"
+                                                                        />
+                                                                    )
+                                                                ));
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                    {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
+                                                    {!msg.text && (!msg.imageUrl || msg.imageUrl.length === 0) && (!msg.images || msg.images.length === 0) && !msg.image && (
+                                                        <p className="text-xs text-red-500 break-all">{JSON.stringify(msg)}</p>
+                                                    )}
                                                     <div className="flex items-center justify-between mt-2 gap-2">
                                                         <span className={`text-xs ${isMe ? "text-teal-100" : "text-gray-500"}`}>
                                                             {msg.createdAt
@@ -508,8 +562,8 @@ const Chat = () => {
                                         </button>
                                         <button
                                             onClick={sendMessage}
-                                            disabled={!newMessage.trim() || !receiverId}
-                                            className={`p-3 rounded-full transition-all ${newMessage.trim() && receiverId
+                                            disabled={(!newMessage.trim() && !selectedFile) || !receiverId}
+                                            className={`p-3 rounded-full transition-all ${(newMessage.trim() || selectedFile) && receiverId
                                                 ? "bg-teal-500 hover:bg-teal-600 text-white shadow-lg"
                                                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                                 }`}

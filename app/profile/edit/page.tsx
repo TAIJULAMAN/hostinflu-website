@@ -135,11 +135,7 @@ export default function EditProfilePage() {
                     }));
 
                 if (validLinks.length > 0) {
-                    validLinks.forEach((link: any, index: number) => {
-                        formData.append(`socialMediaLinks[${index}][platform]`, link.platform);
-                        formData.append(`socialMediaLinks[${index}][url]`, link.url);
-                        formData.append(`socialMediaLinks[${index}][followers]`, link.followers.toString());
-                    });
+                    formData.append("socialMediaLinks", JSON.stringify(validLinks));
                 }
             }
 

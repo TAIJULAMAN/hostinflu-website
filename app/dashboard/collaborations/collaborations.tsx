@@ -223,7 +223,8 @@ export default function Collaborations() {
                                 {user?.role === "host" ? "INFLUENCER" : "HOST"}
                             </TableHead>
                             <TableHead className="bg-[#10B981CC]">NAME</TableHead>
-                            <TableHead className="bg-[#10B981CC]">PAYMENT STATUS</TableHead>
+                            <TableHead className="bg-[#10B981CC]">PAYMENT</TableHead>
+                            <TableHead className="bg-[#10B981CC]">STATUS</TableHead>
                             <TableHead className="bg-[#10B981CC]">DURATION</TableHead>
                             <TableHead className="bg-[#10B981CC]">PAYMENT</TableHead>
                             <TableHead className="bg-[#10B981CC]">STATUS</TableHead>
@@ -271,6 +272,9 @@ export default function Collaborations() {
                                         </TableCell>
                                         <TableCell className="text-gray-600">
                                             {item.paymentStatus}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {item.status}
                                         </TableCell>
                                         <TableCell className="text-gray-600 text-sm">
                                             {item.inTimeAndDate ? new Date(item.inTimeAndDate).toLocaleDateString() : "N/A"} - {item.outTimeAndDate ? new Date(item.outTimeAndDate).toLocaleDateString() : "N/A"}

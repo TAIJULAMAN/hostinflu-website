@@ -17,7 +17,15 @@ export const chatApi = baseApi.injectEndpoints({
             }),
             providesTags: ["chat"],
         }),
+        sendMessage: builder.mutation({
+            query: ({ receiverId, formData }) => ({
+                url: `message/send-message/${receiverId}`,
+                method: "POST",
+                body: formData,
+            }),
+            invalidatesTags: ["chat"],
+        }),
     }),
 });
 
-export const { useGetAllConversationsQuery, useGetMessagesByReceiverIdQuery } = chatApi;
+export const { useGetAllConversationsQuery, useGetMessagesByReceiverIdQuery, useSendMessageMutation } = chatApi;
