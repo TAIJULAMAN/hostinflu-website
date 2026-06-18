@@ -39,6 +39,7 @@ type Message = {
     isOptimistic?: boolean;
     images?: string[];
     imageUrl?: any[];
+    image?: string;
 };
 
 const getMessageTime = (message?: { createdAt?: string }) =>
@@ -554,12 +555,12 @@ const Chat = () => {
                                             className="hidden"
                                             accept="image/*,application/pdf,.doc,.docx"
                                         />
-                                        <button
+                                        {/* <button
                                             onClick={() => fileInputRef.current?.click()}
                                             className="p-3 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-full transition-colors"
                                         >
                                             <Image className="w-5 h-5" />
-                                        </button>
+                                        </button> */}
                                         <button
                                             onClick={sendMessage}
                                             disabled={(!newMessage.trim() && !selectedFile) || !receiverId}
