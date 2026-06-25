@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/contexts/auth-context";
 import ReduxProvider from "../Redux/ReduxProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { PrivateRoute } from "@/components/commom/PrivateRoute";
 import "./globals.css";
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -44,7 +45,9 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <ReduxProvider>
           <AuthProvider>
-            {children}
+            <PrivateRoute>
+              {children}
+            </PrivateRoute>
           </AuthProvider>
         </ReduxProvider>
         <Toaster />

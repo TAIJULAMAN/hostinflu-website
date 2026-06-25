@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Play } from "lucide-react"
 import Image from "next/image"
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 
 export function Hero() {
     return (
@@ -22,14 +23,28 @@ export function Hero() {
                                     Get Started Free
                                 </Button>
                             </Link>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="border-2 bg-transparent text-[#5CC7BD] border-[#5CC7BD] px-10 py-2"
-                            >
-                                <Play className="mr-2" />
-                                Watch How It Works
-                            </Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        className="border-2 bg-transparent text-[#5CC7BD] border-[#5CC7BD] px-10 py-2"
+                                    >
+                                        <Play className="mr-2" />
+                                        Watch How It Works
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-black border-none">
+                                    <DialogTitle className="sr-only">How it works video</DialogTitle>
+                                    <div className="aspect-video w-full flex items-center justify-center">
+                                        <video 
+                                            src="https://www.w3schools.com/html/mov_bbb.mp4" 
+                                            controls 
+                                            className="w-full h-full"
+                                        />
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
 
