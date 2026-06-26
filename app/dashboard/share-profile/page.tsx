@@ -143,13 +143,30 @@ export default function ShareProfilePage() {
                             <Button
                                 variant="outline"
                                 className="w-full border-2 border-gray-100 hover:border-teal-500 hover:text-teal-600 rounded-2xl h-14 font-bold transition-all"
-                                onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = qrCodeUrl;
-                                    link.download = 'hostinflu-profile-qr.png';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
+                                onClick={async () => {
+                                    try {
+                                        const response = await fetch(qrCodeUrl);
+                                        const blob = await response.blob();
+                                        const blobUrl = window.URL.createObjectURL(blob);
+                                        
+                                        const link = document.createElement('a');
+                                        link.href = blobUrl;
+                                        link.download = 'hostinflu-profile-qr.png';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        
+                                        window.URL.revokeObjectURL(blobUrl);
+                                    } catch (error) {
+                                        console.error('Error downloading QR code:', error);
+                                        const link = document.createElement('a');
+                                        link.href = qrCodeUrl;
+                                        link.download = 'hostinflu-profile-qr.png';
+                                        link.target = '_blank';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }
                                 }}
                             >
                                 Download QR Code

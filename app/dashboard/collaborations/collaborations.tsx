@@ -12,7 +12,6 @@ import {
 import { Trash2, ChevronLeft, ChevronRight, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { imgUrl } from "@/config/envConfig";
 import {
     Pagination,
     PaginationContent,
@@ -39,24 +38,37 @@ export default function Collaborations() {
     const { data: collaborationsData, isLoading, isError, error } = useGetCollaborationByUserIdQuery(
         {
             userId: effectiveId,
-            page: currentPage,
-            limit: ITEMS_PER_PAGE,
-            searchTerm: searchTerm || undefined,
+            page: searchTerm ? 1 : currentPage,
+            limit: searchTerm ? 1000 : ITEMS_PER_PAGE,
             status: statusFilter || undefined,
         },
         { skip: !effectiveId || effectiveId === "undefined" }
     );
 
-    const collaborations = Array.isArray(collaborationsData?.data?.collaborations)
+    let collaborations = Array.isArray(collaborationsData?.data?.collaborations)
         ? collaborationsData?.data?.collaborations
         : Array.isArray(collaborationsData?.data)
             ? collaborationsData?.data
             : [];
 
-    const totalPages = collaborationsData?.data?.pagination?.totalPages ||
+    let totalPages = collaborationsData?.data?.pagination?.totalPages ||
         collaborationsData?.pagination?.totalPages ||
         collaborationsData?.totalPages ||
         Math.ceil((collaborationsData?.data?.pagination?.total || collaborationsData?.count || 0) / ITEMS_PER_PAGE) || 1;
+
+    if (searchTerm) {
+        collaborations = collaborations.filter((item: any) => {
+            const isMyInitiated = item?.userId?._id === effectiveId || item?.userId?.id === effectiveId || item?.userId === effectiveId;
+            const partner = isMyInitiated ? item.selectInfluencerOrHost : item.userId;
+            return partner?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+
+        totalPages = Math.ceil(collaborations.length / ITEMS_PER_PAGE) || 1;
+
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        collaborations = collaborations.slice(startIndex, endIndex);
+    }
 
     const getPageNumbers = () => {
         const pages = [];

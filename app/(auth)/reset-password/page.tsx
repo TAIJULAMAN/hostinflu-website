@@ -7,7 +7,9 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Lock, Eye, EyeOff, CheckCircle } from "lucide-react"
+import { Lock, Eye, EyeOff, CheckCircle, Loader2 } from "lucide-react"
+import { useResetPasswordMutation } from "@/Redux/api/auth/authApi"
+import { toast } from "sonner"
 
 export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -21,20 +23,31 @@ export default function ResetPasswordPage() {
   const email = searchParams.get("email") || ""
   const otp = searchParams.get("otp") || ""
 
+  const [resetPassword, { isLoading }] = useResetPasswordMutation()
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleReset = (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match")
+      toast.error("Passwords do not match")
       return
     }
-    console.log("[v0] Password reset with new password")
-    console.log("[v0] Email:", email, "OTP:", otp)
-    setSubmitted(true)
+
+    try {
+      const res = await resetPassword({ 
+        newPassword: formData.password, 
+        confirmPassword: formData.confirmPassword,
+        email
+      }).unwrap()
+      toast.success(res?.message || "Password reset successfully")
+      setSubmitted(true)
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to reset password")
+    }
   }
 
   return (
@@ -132,9 +145,17 @@ export default function ResetPasswordPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-semibold"
+                disabled={isLoading}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-semibold disabled:opacity-70"
               >
-                Reset Password
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Resetting...
+                  </div>
+                ) : (
+                  "Reset Password"
+                )}
               </Button>
             </form>
           ) : (

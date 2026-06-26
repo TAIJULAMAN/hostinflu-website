@@ -7,12 +7,16 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
+import { useVerifyEmailMutation, useForgotPasswordMutation } from "@/Redux/api/auth/authApi"
+import { toast } from "sonner"
 
 export default function OTPVerificationPage() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""])
+  const [otp, setOtp] = useState(["", "", "", ""])
   const [resendTimer, setResendTimer] = useState(0)
-  const [verifying, setVerifying] = useState(false)
+  
+  const [verifyEmail, { isLoading: verifying }] = useVerifyEmailMutation()
+  const [forgotPassword, { isLoading: resending }] = useForgotPasswordMutation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
@@ -24,7 +28,7 @@ export default function OTPVerificationPage() {
     setOtp(newOtp)
 
     // Auto-focus next input
-    if (value && index < 5) {
+    if (value && index < 3) {
       const nextInput = document.getElementById(`otp-${index + 1}`)
       nextInput?.focus()
     }
@@ -37,35 +41,41 @@ export default function OTPVerificationPage() {
     }
   }
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     const otpCode = otp.join("")
 
-    if (otpCode.length !== 6) {
-      alert("Please enter a valid 6-digit OTP")
+    if (otpCode.length !== 4) {
+      toast.error("Please enter a valid 4-digit OTP")
       return
     }
 
-    console.log("[v0] OTP verification attempted with:", otpCode)
-
-    setVerifying(true)
-    setTimeout(() => {
+    try {
+      const res = await verifyEmail({ otp: otpCode }).unwrap()
+      toast.success(res?.message || "Email verified successfully")
       router.push(`/reset-password?email=${email}&otp=${otpCode}`)
-    }, 500)
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Invalid OTP")
+    }
   }
 
-  const handleResend = () => {
-    console.log("[v0] OTP resend requested")
-    setResendTimer(60)
-    const interval = setInterval(() => {
-      setResendTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
+  const handleResend = async () => {
+    try {
+      const res = await forgotPassword({ email }).unwrap()
+      toast.success(res?.message || "OTP resent to your email")
+      setResendTimer(60)
+      const interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to resend OTP")
+    }
   }
 
   return (
@@ -77,7 +87,7 @@ export default function OTPVerificationPage() {
             <span className="font-bold text-2xl text-foreground">≠ Hostinflu</span>
           </Link>
           <h1 className="text-4xl font-bold text-foreground mb-2">Verify OTP</h1>
-          <p className="text-muted-foreground">Enter the 6-digit code sent to your email</p>
+          <p className="text-muted-foreground">Enter the 4-digit code sent to your email</p>
         </div>
 
         {/* OTP Verification Card */}
@@ -129,7 +139,14 @@ export default function OTPVerificationPage() {
               disabled={verifying}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-semibold disabled:opacity-70"
             >
-              {verifying ? "Verifying..." : "Verify OTP"}
+              {verifying ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Verifying...
+                </div>
+              ) : (
+                "Verify OTP"
+              )}
             </Button>
           </form>
         </Card>

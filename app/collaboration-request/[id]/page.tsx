@@ -202,11 +202,12 @@ export default function CollaborationEditPage() {
                 </div>
 
                 <div className="flex justify-end gap-4 mt-8">
-                    <Link href="/dashboard/collaborations">
-                        <Button className="bg-gray-200 hover:bg-gray-300 text-gray-600">
-                            Cancel
-                        </Button>
-                    </Link>
+                    <Button 
+                        className="bg-gray-200 hover:bg-gray-300 text-gray-600"
+                        onClick={() => router.back()}
+                    >
+                        Cancel
+                    </Button>
                     <Button
                         className="bg-teal-500 hover:bg-teal-600 text-white min-w-[140px]"
                         onClick={handleSave}

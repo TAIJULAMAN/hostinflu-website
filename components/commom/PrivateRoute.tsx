@@ -16,7 +16,10 @@ const publicRoutes = [
   "/terms-and-conditions",
   "/hosts",
   "/influencers",
-  "/deals"
+  "/deals",
+  "/forgot-password",
+  "/otp-verification",
+  "/reset-password"
 ];
 
 export function PrivateRoute({ children }: { children: React.ReactNode }) {

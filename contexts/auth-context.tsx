@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        // Check if user is logged in on mount
         const currentUser = localStorage.getItem("currentUser");
         if (currentUser) {
             setUser(JSON.parse(currentUser));
@@ -35,30 +34,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signup = (fullName: string, email: string, password: string, role: "host" | "influencer"): boolean => {
         try {
-            // Get existing users
             const usersData = localStorage.getItem("users");
             const users = usersData ? JSON.parse(usersData) : [];
-
-            // Check if email already exists
             if (users.some((u: any) => u.email === email)) {
                 alert("Email already registered!");
                 return false;
             }
-
-            // Create new user
             const newUser = {
                 id: Date.now().toString(),
                 fullName,
                 email,
-                password, // In production, this should be hashed
+                password,
                 role,
             };
-
-            // Save to users array
             users.push(newUser);
             localStorage.setItem("users", JSON.stringify(users));
-
-            // Set as current user
             const userWithoutPassword = { id: newUser.id, fullName, email, role };
             setUser(userWithoutPassword);
             setIsAuthenticated(true);
