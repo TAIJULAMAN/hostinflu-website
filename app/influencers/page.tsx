@@ -15,7 +15,7 @@ import { CustomPagination } from "@/components/commom/custom-pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SocialIcon } from "@/components/influencer/social-icon";
 import { FollowerCount } from "@/components/influencer/follower-count";
-import { useCreateFavoriteMutation } from "@/Redux/api/bookmark/bookmarkApi";
+import { useCreateFavoriteMutation, useGetMyFavoritesQuery } from "@/Redux/api/bookmark/bookmarkApi";
 import { toast } from "sonner";
 
 
@@ -36,7 +36,10 @@ export default function InfluencersPage() {
     });
 
     const [createFavorite] = useCreateFavoriteMutation();
-    const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+    const [localBookmarks, setLocalBookmarks] = useState<Record<string, boolean>>({});
+
+    const { data: favoritesRes } = useGetMyFavoritesQuery(undefined);
+    const favoritedIds = Array.isArray(favoritesRes?.data) ? favoritesRes.data.map((fav: any) => fav._id) : [];
 
 
     const influencersData = data?.data?.filter((user: any) => {
@@ -128,25 +131,32 @@ export default function InfluencersPage() {
                                                 className="absolute top-4 left-4 z-10 p-2 rounded-full bg-black/10 backdrop-blur-md border border-white/20 transition-all duration-300 shadow-sm"
                                                 onClick={async (e) => {
                                                     e.preventDefault();
-                                                    const isBookmarked = bookmarkedIds.includes(influencer._id);
+                                                    const isBookmarked = localBookmarks[influencer._id] !== undefined 
+                                                        ? localBookmarks[influencer._id] 
+                                                        : favoritedIds.includes(influencer._id);
+                                                        
+                                                    setLocalBookmarks((prev) => ({
+                                                        ...prev,
+                                                        [influencer._id]: !isBookmarked
+                                                    }));
+
                                                     try {
                                                         const res = await createFavorite(influencer._id).unwrap();
-                                                        if (isBookmarked) {
-                                                            setBookmarkedIds((prev) => prev.filter((id) => id !== influencer._id));
-                                                        } else {
-                                                            setBookmarkedIds((prev) => [...prev, influencer._id]);
-                                                        }
-                                                        toast.success(res?.message || (isBookmarked ? "Influencer saved to favorites" : "Removed from favorites"));
+                                                        toast.success(res?.message || (isBookmarked ? "Removed from favorites" : "Influencer saved to favorites"));
                                                     } catch (error: any) {
+                                                        setLocalBookmarks((prev) => ({
+                                                            ...prev,
+                                                            [influencer._id]: isBookmarked
+                                                        }));
                                                         toast.error(error?.data?.message || "Failed to update favorites");
                                                     }
                                                 }}
                                                 aria-label='add-to-wishlist'
                                             >
                                                 <Heart
-                                                    className={`w-6 h-6 transition-all duration-500 cursor-pointer ${bookmarkedIds.includes(influencer._id)
+                                                    className={`w-6 h-6 transition-all duration-500 cursor-pointer ${(localBookmarks[influencer._id] !== undefined ? localBookmarks[influencer._id] : favoritedIds.includes(influencer._id))
                                                         ? "text-red-500 fill-red-500"
-                                                        : "text-white hover:text-red-500"
+                                                        : "text-white"
                                                         }`}
                                                 />
                                             </button>
