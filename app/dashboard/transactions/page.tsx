@@ -30,17 +30,37 @@ export default function TransactionsPage() {
     const [statusFilter, setStatusFilter] = useState("");
 
     const { data: transactionResponse, isLoading } = useGetTransactionQuery({
-        page: currentPage,
-        limit: ITEMS_PER_PAGE,
-        searchTerm,
-        status: statusFilter,
+        page: searchTerm ? 1 : currentPage,
+        limit: searchTerm ? 1000 : ITEMS_PER_PAGE,
+        status: statusFilter || undefined,
     });
 
     console.log(transactionResponse, "transactionResponse");
 
-    const transactionsData = transactionResponse?.data?.transactions || [];
-    const pagination = transactionResponse?.data?.pagination || { totalPages: 1 };
-    const totalPages = pagination.totalPages;
+    let transactionsData = transactionResponse?.data?.transactions || [];
+    let pagination = transactionResponse?.data?.pagination || { totalPages: 1 };
+    let totalPages = pagination.totalPages;
+
+    if (searchTerm) {
+        transactionsData = transactionsData.filter((transaction: any) => {
+            const influencerName = transaction?.selectInfluencerOrHost?.name?.toLowerCase() || "";
+            const title = transaction?.title?.title?.toLowerCase() || "";
+            const transactionId = (transaction._id as string).slice(-8).toUpperCase();
+            const searchLower = searchTerm.toLowerCase();
+
+            return (
+                influencerName.includes(searchLower) ||
+                title.includes(searchLower) ||
+                transactionId.includes(searchTerm.toUpperCase())
+            );
+        });
+
+        totalPages = Math.ceil(transactionsData.length / ITEMS_PER_PAGE) || 1;
+
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        transactionsData = transactionsData.slice(startIndex, endIndex);
+    }
 
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;

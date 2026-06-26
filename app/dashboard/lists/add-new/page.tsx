@@ -32,6 +32,7 @@ export default function AddNewListingPage() {
     const [newAmenityInput, setNewAmenityInput] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,8 +88,20 @@ export default function AddNewListingPage() {
         }
     };
 
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+        if (!title.trim()) newErrors.title = "Property Title is required";
+        if (!description.trim()) newErrors.description = "Description is required";
+        if (!location.trim()) newErrors.location = "Location is required";
+        if (!propertyType) newErrors.propertyType = "Property Type is required";
+        if (selectedFiles.length === 0) newErrors.images = "At least one property photo is required";
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async () => {
-        if (!title || !description || !location || !propertyType) {
+        if (!validateForm()) {
             toast.error("Please fill in all required fields.");
             return;
         }
@@ -149,7 +162,9 @@ export default function AddNewListingPage() {
                                     placeholder="GreenStay Villa"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
+                                    className={errors.title ? "border-red-500" : ""}
                                 />
+                                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -158,10 +173,11 @@ export default function AddNewListingPage() {
                                 </label>
                                 <Textarea
                                     placeholder="Describe your property, its unique features, and what makes it special..."
-                                    className="min-h-[120px]"
+                                    className={`min-h-[120px] ${errors.description ? "border-red-500" : ""}`}
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                 />
+                                {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,7 +189,9 @@ export default function AddNewListingPage() {
                                         placeholder="Enter address or city"
                                         value={location}
                                         onChange={(e) => setLocation(e.target.value)}
+                                        className={errors.location ? "border-red-500" : ""}
                                     />
+                                    {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
                                 </div>
 
                                 <div className="space-y-2">
@@ -181,7 +199,7 @@ export default function AddNewListingPage() {
                                         Property Type <span className="text-red-500">*</span>
                                     </label>
                                     <Select value={propertyType} onValueChange={setPropertyType}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className={errors.propertyType ? "border-red-500" : ""}>
                                             <SelectValue placeholder="Select property type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -193,6 +211,7 @@ export default function AddNewListingPage() {
                                             <SelectItem value="Lodge">Lodge</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>}
                                 </div>
                             </div>
 
@@ -214,6 +233,7 @@ export default function AddNewListingPage() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-5">
                             Property Photos
                         </h3>
+                        {errors.images && <p className="text-red-500 text-sm mb-3">{errors.images}</p>}
                         <div className="space-y-4">
                             <input
                                 ref={fileInputRef}

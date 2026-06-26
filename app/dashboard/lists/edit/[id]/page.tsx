@@ -43,6 +43,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const amenitiesList = [
@@ -135,8 +136,25 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         fileInputRef.current?.click();
     };
 
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+        if (!title.trim()) newErrors.title = "Property Title is required";
+        if (!description.trim()) newErrors.description = "Description is required";
+        if (!location.trim()) newErrors.location = "Location is required";
+        if (!propertyType) newErrors.propertyType = "Property Type is required";
+        if (selectedFiles.length === 0 && uploadedImages.length === 0) newErrors.images = "At least one property photo is required";
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            toast.error("Please fill in all required fields.");
+            return;
+        }
 
         const formData = new FormData();
         formData.append("title", title);
@@ -224,8 +242,9 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                     <Input
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        required
+                                        className={errors.title ? "border-red-500" : ""}
                                     />
+                                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
                                 </div>
 
                                 <div className="space-y-2">
@@ -235,9 +254,9 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                     <Textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        className="min-h-[120px]"
-                                        required
+                                        className={`min-h-[120px] ${errors.description ? "border-red-500" : ""}`}
                                     />
+                                    {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,8 +267,9 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                         <Input
                                             value={location}
                                             onChange={(e) => setLocation(e.target.value)}
-                                            required
+                                            className={errors.location ? "border-red-500" : ""}
                                         />
+                                        {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
                                     </div>
 
                                     <div className="space-y-2">
@@ -257,8 +277,8 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                             Property Type <span className="text-red-500">*</span>
                                         </label>
                                         <Select value={propertyType} onValueChange={setPropertyType}>
-                                            <SelectTrigger>
-                                                <SelectValue />
+                                            <SelectTrigger className={errors.propertyType ? "border-red-500" : ""}>
+                                                <SelectValue placeholder="Select property type" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="Apartment">Apartment</SelectItem>
@@ -269,6 +289,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                                                 <SelectItem value="Lodge">Lodge</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>}
                                     </div>
                                 </div>
 
@@ -289,6 +310,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                             <h3 className="text-lg font-semibold text-gray-900 mb-5">
                                 Property Images
                             </h3>
+                            {errors.images && <p className="text-red-500 text-sm mb-3">{errors.images}</p>}
                             <div className="space-y-4">
                                 <input
                                     ref={fileInputRef}
