@@ -13,7 +13,7 @@ import { Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { useGetAllListsQuery, useDeleteListMutation, useSearchListQuery } from "@/Redux/api/host/list/listApi";
+import { useGetAllListsQuery, useDeleteListMutation } from "@/Redux/api/host/list/listApi";
 import { useDebounce } from "@/hooks/useDebounce";
 import { imgUrl } from "@/config/envConfig";
 import Image from "next/image";
@@ -32,17 +32,11 @@ export default function Lists() {
         currentPage,
         limit,
         status: status || undefined,
-    }, { skip: !!debouncedSearchTerm });
+        search: debouncedSearchTerm || undefined,
+    });
 
-    const { data: searchListData, isLoading: isSearchLoading } = useSearchListQuery({
-        query: "listings",
-        searchType: debouncedSearchTerm,
-        currentPage,
-        limit,
-    }, { skip: !debouncedSearchTerm });
-
-    const listData = debouncedSearchTerm ? searchListData : allListData;
-    const isLoading = debouncedSearchTerm ? isSearchLoading : isAllLoading;
+    const listData = allListData;
+    const isLoading = isAllLoading;
 
     const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
     const listings = listData?.data?.listings || [];
