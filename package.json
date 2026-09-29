@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev -p 8889",
+    "build": "node api.js && next build",
+    "dev": "node api.js && next dev -p 8889",
     "lint": "eslint .",
-    "start": "next start -p 8889"
+    "start": "node api.js && next start -p 8889"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
