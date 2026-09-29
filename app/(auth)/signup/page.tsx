@@ -73,11 +73,15 @@ export default function SignUpPage() {
   const onSubmit = async (data: SignUpFormValues) => {
     try {
       const res = await signUp(data).unwrap();
-      toast.success("Account created successfully!");
-      // Redirect to login or verification page
-      router.push("/signin");
+      toast.success(
+        res?.message ||
+          "Account created! Please verify your email with the 6-digit code sent to you.",
+      );
+      router.push(`/verify-email?email=${encodeURIComponent(data.email.trim())}`);
     } catch (error: any) {
-      toast.error(error?.data?.message || "Something went wrong. Please try again.");
+      toast.error(
+        error?.data?.message || "Something went wrong. Please try again.",
+      );
     }
   };
 

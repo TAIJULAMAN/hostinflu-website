@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -33,6 +34,7 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
+  const router = useRouter();
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLogInMutation();
   const [showPassword, setShowPassword] = useState(false);
@@ -76,6 +78,31 @@ export default function SignInPage() {
       toast.success("Logged in successfully!");
       window.location.href = "/";
     } catch (error: any) {
+      if (
+        error?.data?.errorType === "EMAIL_NOT_VERIFIED" ||
+        error?.data?.message?.toLowerCase().includes("verify your email")
+      ) {
+        toast.error(
+          error?.data?.message ||
+            "Please verify your email before logging in.",
+          {
+            action: {
+              label: "Verify Now",
+              onClick: () =>
+                router.push(
+                  `/verify-email?email=${encodeURIComponent(data.email.trim())}`,
+                ),
+            },
+            duration: 8000,
+          },
+        );
+        setTimeout(() => {
+          router.push(
+            `/verify-email?email=${encodeURIComponent(data.email.trim())}`,
+          );
+        }, 1800);
+        return;
+      }
       toast.error(error?.data?.message || "Invalid email or password");
     }
   };

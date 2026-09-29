@@ -19,7 +19,8 @@ const publicRoutes = [
   "/deals",
   "/forgot-password",
   "/otp-verification",
-  "/reset-password"
+  "/reset-password",
+  "/verify-email"
 ];
 
 export function PrivateRoute({ children }: { children: React.ReactNode }) {

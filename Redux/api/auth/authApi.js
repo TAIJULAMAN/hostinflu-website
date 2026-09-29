@@ -55,6 +55,21 @@ const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["auth"],
     }),
+    verifyRegistrationOtp: builder.mutation({
+      query: (data) => ({
+        url: "auth/verify-registration-otp",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["auth"],
+    }),
+    resendRegistrationOtp: builder.mutation({
+      query: (data) => ({
+        url: "auth/resend-registration-otp",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -65,6 +80,8 @@ export const {
   useVerifyEmailMutation,
   useResetPasswordMutation,
   useChangePasswordMutation,
+  useVerifyRegistrationOtpMutation,
+  useResendRegistrationOtpMutation,
 } = authApi;
 
 export default authApi;
