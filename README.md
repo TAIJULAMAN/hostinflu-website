@@ -78,19 +78,20 @@
 
 <a id="interface-preview"></a>
 
+
 ## Interface Preview
 
 Explore dedicated host workspaces, verified creator portfolios, and collaborative deal pipelines built with Next.js 16, Tailwind CSS 4, Radix UI, Chart.js, and Socket.io.
 
-|                             **Hospitality Meets Influence**                             |                             **Collaborative Deals & Stays**                             |
-| :-------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------: |
-| <img src="./public/hero1.png" alt="Hospitality Meets Influence Showcase" width="480" /> | <img src="./public/hero2.png" alt="Influencer Collaboration & Deals Hub" width="480" /> |
-|            _Modern landing experience connecting luxury stays with creators_            |                 _Transparent collaboration proposals & stay exchanges_                  |
+|                                  **Host Dashboard & Campaign Analytics**                                  |                                     **Influencer Collaboration Hub**                                      |
+| :-------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: |
+|   <img src="./public/preview/host-dashboard.jpg" alt="Host Analytics & Stays Dashboard" width="480" />    | <img src="./public/preview/influencer-hub.jpg" alt="Influencer Collaboration & Deals Hub" width="480" />  |
+|                    _Executive metrics, stays management & campaign exposure tracking_                     |                _Verified creator portfolio, active stay milestones & star rewards wallet_                 |
 
-|                       **Property Listings Management**                        |                      **Creator Verification & Metrics**                       |
-| :---------------------------------------------------------------------------: | :---------------------------------------------------------------------------: |
-| <img src="./public/list.png" alt="Property Listing Management" width="480" /> | <img src="./public/avatar.png" alt="Creator Profile & Metrics" width="480" /> |
-|              _Interactive property inventory, rules & amenities_              |             _Verified social follower counts, engagement & reach_             |
+|                                     **Luxury Stay & Property Discovery**                                      |                                   **Real-Time Deal Management & Chat**                                    |
+|   :-------------------------------------------------------------------------------------------------------:   | :-------------------------------------------------------------------------------------------------------: |
+| <img src="./public/preview/property-discovery.jpg" alt="Luxury Property Discovery Marketplace" width="480" /> |     <img src="./public/preview/deal-chat.jpg" alt="Real-Time Deal Negotiation & Chat" width="480" />      |
+|                    _Curated luxury villas, amenities & direct collaboration applications_                     |                _Real-time messaging, stay itinerary coordination & star-escrow protection_                |
 
 ---
 
@@ -258,7 +259,8 @@ hostinflu-website/
 ├── contexts/                           # React Context providers (AuthContext, ThemeContext)
 ├── hooks/                              # Custom React business logic & utility hooks
 ├── lib/                                # Core utilities, CSS class mergers (cn) & helpers
-├── public/                             # Public static assets (logos, heroes, avatars, mockups)
+├── public/                             # Public static assets (logos, heroes, avatars)
+│   └── preview/                        # High-resolution UI mockup previews (Host & Influencer dashboards)
 ├── Redux/                              # Centralized Redux Toolkit state management
 │   ├── api/                            # RTK Query modular API slices
 │   │   ├── about/                      # About page dynamic content API
